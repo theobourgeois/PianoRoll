@@ -4,8 +4,8 @@ Piano Roll is a dynamic piano roll website made with React.
 
 ## Features
 
--   128 different instruments to select from, providing a wide range of sounds to incorporate in your music.
--   Import and export MIDI files.
+-   128 different instruments to select from.
+-   Import MIDI files.
 -   A comprehensive suite of keyboard shortcuts, providing quick and efficient operations.
 
 ## Keyboard Shortcuts
