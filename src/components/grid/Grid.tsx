@@ -1,42 +1,14 @@
 import { useContext, useEffect, useRef } from "react";
-import { NoteData } from "../../utils/types";
-import { NOTE_WIDTH, PIANO_WIDTH, RIGHT_CLICK } from "../../utils/constants";
-import {
-    NoteLengthContext,
-    NotesContext,
-    PlayingContext,
-    ProgressContext,
-    SnapValueContext,
-} from "../../utils/context";
-import {
-    getNoteCoordsFromMousePosition,
-    handleNoteMouseEvents,
-    makeNewNote,
-    playNote,
-    snapColumn,
-} from "../../utils/util-functions";
+import { NOTE_WIDTH, PIANO_WIDTH } from "../../utils/constants";
+import { ProgressContext } from "../../utils/context";
 import { ProgressSelector } from "../progress-selector/ProgressSelector";
 
 interface GridProps {
-    handleAddNote: (note: NoteData) => void;
-    handleChangeNotes: (note: NoteData) => void;
-    handleDeselectAllNotes: () => void;
-    handleSelectNote: (note: NoteData) => void;
-    handleDeleteMultipleNotes: (notes: NoteData[]) => void;
+    handleMouseDownOnGrid: (e: React.MouseEvent<HTMLDivElement>) => void;
 }
 
-export const Grid = ({
-    handleAddNote,
-    handleDeselectAllNotes,
-    handleSelectNote,
-    handleDeleteMultipleNotes,
-}: GridProps): JSX.Element => {
-    const { snapValue } = useContext(SnapValueContext);
-    const { noteLength } = useContext(NoteLengthContext);
+export const Grid = ({ handleMouseDownOnGrid }: GridProps): JSX.Element => {
     const { progress } = useContext(ProgressContext);
-    const { notes } = useContext(NotesContext);
-    const { playing } = useContext(PlayingContext);
-
     const gridRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
@@ -62,85 +34,6 @@ export const Grid = ({
         e.stopPropagation();
     };
 
-    const handleSelectNotesInBox = (e: React.MouseEvent<HTMLDivElement>) => {
-        const startPos = getNoteCoordsFromMousePosition(e);
-        let currentPos = startPos;
-        let selectedNotes = new Set();
-
-        handleNoteMouseEvents((row, col) => {
-            const minRow = Math.min(startPos.row, currentPos.row);
-            const maxRow = Math.max(startPos.row, currentPos.row);
-            const minCol = Math.min(startPos.col, currentPos.col);
-            const maxCol = Math.max(startPos.col, currentPos.col);
-
-            const notesInBox = notes.filter((note: NoteData) => {
-                const noteRow = note.row;
-                const noteStartCol = note.column;
-                const noteEndCol = note.column + note.units;
-
-                return (
-                    minRow <= noteRow &&
-                    noteRow <= maxRow &&
-                    ((minCol <= noteStartCol && noteStartCol <= maxCol) ||
-                        (minCol <= noteEndCol && noteEndCol <= maxCol) ||
-                        (noteStartCol <= minCol && maxCol <= noteEndCol))
-                );
-            });
-
-            notesInBox.forEach((note: NoteData) => {
-                if (!selectedNotes.has(note.id)) {
-                    handleSelectNote(note);
-                    selectedNotes.add(note.id);
-                }
-            });
-
-            currentPos = { row, col };
-        });
-    };
-
-    const handleDeleteNotes = () => {
-        handleNoteMouseEvents((row, col) => {
-            const deletableNotes = notes.filter((note: NoteData) => {
-                return (
-                    note.column < col &&
-                    note.column + note.units > col &&
-                    note.row === row
-                );
-            });
-            if (deletableNotes.length > 0)
-                handleDeleteMultipleNotes(deletableNotes);
-        });
-    };
-
-    const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
-        if (e.metaKey || e.ctrlKey) return handleSelectNotesInBox(e);
-        if (e.button === RIGHT_CLICK) return handleDeleteNotes();
-        handleDeselectAllNotes();
-        const { row, col } = getNoteCoordsFromMousePosition(e);
-        const newNote = makeNewNote(
-            row,
-            snapColumn(col, snapValue),
-            noteLength
-        );
-        handleAddNote(newNote);
-        if (!playing) playNote(newNote.note);
-
-        let currentNote = newNote;
-        //handles moving note after it's been created
-        handleNoteMouseEvents((row, col) => {
-            const newNote = makeNewNote(
-                row,
-                snapColumn(col, snapValue),
-                noteLength
-            );
-            if (currentNote.note !== newNote.note && !playing) {
-                playNote(newNote.note);
-            }
-            handleAddNote(newNote);
-            currentNote = newNote;
-        });
-    };
-
     return (
         <>
             <div
@@ -154,7 +47,7 @@ export const Grid = ({
             ></div>
             <ProgressSelector />
             <div
-                onMouseDown={handleMouseDown}
+                onMouseDown={handleMouseDownOnGrid}
                 onContextMenu={handleRightClick}
                 ref={gridRef}
                 className="bg-slate-700 absolute w-full h-full origin-top-left"

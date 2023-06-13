@@ -23,9 +23,19 @@ export const getRowFromNote = (note: string) => {
     return allNotes.length - allNotes.indexOf(note) - 1;
 }
 
+let currentMouseMoveHandler: ((e: MouseEvent) => void) | null = null;
+let currentMouseUpHandler: ((e: MouseEvent) => void) | null = null;
+
 export const handleNoteMouseEvents = (
     mouseMoveHandler: (row: number, col: number, e: MouseEvent) => void
 ) => {
+    // If there are already event listeners attached, remove them first.
+    if (currentMouseMoveHandler) {
+        window.removeEventListener("mousemove", currentMouseMoveHandler);
+        //@ts-ignore
+        window.removeEventListener("mouseup", currentMouseUpHandler);
+    }
+
     const handleMouseMove = (e: MouseEvent) => {
         const { row, col } = getNoteCoordsFromMousePosition(e);
         mouseMoveHandler(row, col, e);
@@ -35,6 +45,11 @@ export const handleNoteMouseEvents = (
         window.removeEventListener("mousemove", handleMouseMove);
         window.removeEventListener("mouseup", handleMouseUp);
     };
+
+    // Save the current handlers so they can be removed later.
+    currentMouseMoveHandler = handleMouseMove;
+    currentMouseUpHandler = handleMouseUp;
+
     window.addEventListener("mousemove", handleMouseMove);
     window.addEventListener("mouseup", handleMouseUp);
 };
