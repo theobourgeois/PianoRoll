@@ -131,41 +131,45 @@ export const getNearestBar = (notes: NoteData[]) => {
 }
 
 
-// export function midiToNoteData(midiData) {
-//     const noteData = [];
-//     let currentTick = 0;
-//     let currentColumn = 0;
-//     const timeDivision = midiData.timeDivision;
-//     let ongoingNotes = {}; // Dictionary to track ongoing notes
-//     midiData.track[1].event.forEach((event, index) => {
-//         // Increase currentTick by deltaTime
-//         currentTick += event.deltaTime;
-//         currentColumn += Math.floor((event.deltaTime / timeDivision) * 8);
+//@ts-ignore
+export const midiToNoteData = (midiData) => {
+    // @ts-ignore
+    const noteData = [];
 
-//         if (event.type === 9) {
-//             // note-on event
-//             ongoingNotes[event.data[0]] = currentColumn; // Start of the note
-//         } else if (event.type === 8) {
-//             // note-off event
-//             const noteStart = ongoingNotes[event.data[0]];
-//             if (noteStart !== undefined) {
-//                 // If the note was previously started
-//                 const note = {
-//                     row: event.data[0],
-//                     note: allNotes[allNotes.length - 1 - event.data[0]],
-//                     column: noteStart,
-//                     units: currentColumn - noteStart, // units equals to the note length
-//                     velocity: 1,
-//                     pan: 0,
-//                     id: index,
-//                     selected: false,
-//                 };
+    for (const track of midiData.track) {
+        let currentTick = 0;
+        let currentColumn = 0;
+        const timeDivision = midiData.timeDivision;
+        let ongoingNotes = {};
+        // @ts-ignore
+        track.event.forEach((event, index) => {
+            currentTick += event.deltaTime;
+            currentColumn += Math.floor((event.deltaTime / timeDivision) * 8)
 
-//                 noteData.push(note);
-//                 delete ongoingNotes[event.data[0]]; // Delete the note from ongoingNotes
-//             }
-//         }
-//     });
-
-//     return noteData;
-// }
+            if (event.type === 9 && event.data[1] !== 0) {
+                // @ts-ignore
+                ongoingNotes[event.data[0]] = { start: currentColumn, velocity: event.data[1] }; // Start of the note, track velocity
+            } else if (event.type === 8 || (event.type === 9 && event.data[1] === 0)) {
+                // @ts-ignore
+                const noteStart = ongoingNotes[event.data[0]];
+                if (noteStart !== undefined) {
+                    const note = {
+                        row: event.data[0],
+                        note: allNotes[allNotes.length - 1 - event.data[0]],
+                        column: noteStart.start,
+                        units: currentColumn - noteStart.start,
+                        velocity: noteStart.velocity,
+                        pan: 0,
+                        id: index,
+                        selected: false,
+                    };
+                    noteData.push(note);
+                    // @ts-ignore
+                    delete ongoingNotes[event.data[0]];
+                }
+            }
+        });
+    }
+    // @ts-ignore
+    return noteData;
+}

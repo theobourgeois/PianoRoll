@@ -1,4 +1,3 @@
-//@ts-nocheck
 import { useContext, useEffect, useRef, useState } from "react";
 import DraggableNumInput from "../../draggable-num-input/DraggableNumInput";
 import { DEFAULT_SAVE_TIME } from "../../utils/constants";
@@ -10,7 +9,12 @@ import {
     SnapValueContext,
 } from "../../utils/context";
 import { Direction, NoteData } from "../../utils/types";
-import { getNearestBar, playNote, timer } from "../../utils/util-functions";
+import {
+    getNearestBar,
+    midiToNoteData,
+    playNote,
+    timer,
+} from "../../utils/util-functions";
 import {
     TbPlayerPlayFilled,
     TbPlayerPauseFilled,
@@ -22,49 +26,6 @@ import { CgImport } from "react-icons/cg";
 import { InstrumentOptions } from "./InstrumentOptions";
 import { allNotes, idGen } from "../../utils/globals";
 import MidiParser from "midi-parser-js";
-
-function midiToNoteData(midiData) {
-    const noteData = [];
-
-    for (const track of midiData.track) {
-        let currentTick = 0;
-        let currentColumn = 0;
-        const timeDivision = midiData.timeDivision;
-        let ongoingNotes = {}; // Dictionary to track ongoing notes
-
-        track.event.forEach((event, index) => {
-            // Increase currentTick by deltaTime
-            currentTick += event.deltaTime;
-            currentColumn += Math.floor((event.deltaTime / timeDivision) * 8);
-
-            if (event.type === 9) {
-                // note-on event
-                ongoingNotes[event.data[0]] = currentColumn; // Start of the note
-            } else if (event.type === 8) {
-                // note-off event
-                const noteStart = ongoingNotes[event.data[0]];
-                if (noteStart !== undefined) {
-                    // If the note was previously started
-                    const note = {
-                        row: event.data[0],
-                        note: allNotes[allNotes.length - 1 - event.data[0]],
-                        column: noteStart,
-                        units: currentColumn - noteStart, // units equals to the note length
-                        velocity: 1,
-                        pan: 0,
-                        id: index,
-                        selected: false,
-                    };
-
-                    noteData.push(note);
-                    delete ongoingNotes[event.data[0]]; // Delete the note from ongoingNotes
-                }
-            }
-        });
-    }
-
-    return noteData;
-}
 
 export const Controls = (): JSX.Element => {
     const { notes, setNotes } = useContext(NotesContext);
@@ -80,9 +41,9 @@ export const Controls = (): JSX.Element => {
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
+        // @ts-ignore
         MidiParser.parse(fileInputRef.current, (obj) => {
-            console.log(obj);
-            setNotes(midiToNoteData(obj));
+            console.log(midiToNoteData(obj));
         });
     }, []);
 
@@ -406,13 +367,13 @@ export const Controls = (): JSX.Element => {
                     <InstrumentOptions />
                 </div>
                 <div className="flex items-center relative mx-2">
-                    <lable
+                    <label
                         className="flex bg-blue-500 hover:bg-blue-600  px-2 rounded-sm text-white"
-                        hmtlFor="file"
+                        htmlFor="file"
                     >
                         <CgImport color="white" className="w-5 h-5 mr-1" />
                         Import MIDI file
-                    </lable>
+                    </label>
                     <input
                         className="absolute opacity-0"
                         ref={fileInputRef}

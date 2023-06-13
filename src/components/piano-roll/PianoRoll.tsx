@@ -1,18 +1,10 @@
-import { useContext, useEffect, useState } from "react";
+import { useContext, useState } from "react";
 import { NoteData } from "../../utils/types";
 import { NoteLengthContext, NotesContext } from "../../utils/context";
-import { allNotes, idGen } from "../../utils/globals";
+import { idGen } from "../../utils/globals";
 import { Grid } from "../grid/Grid";
 import { Note } from "../note/Note";
 import { Piano } from "../piano/Piano";
-import {
-    getMousePos,
-    getNoteCoordsFromMousePosition,
-    handleNoteMouseEvents,
-    makeNewNote,
-    playNote,
-    snapColumn,
-} from "../../utils/util-functions";
 import { Selection } from "../selection/Selection";
 import { usePianoRoll } from "./usePianoRoll";
 import { DEFAULT_NOTE_LENGTH } from "../../utils/constants";
@@ -27,9 +19,6 @@ export const PianoRoll = (): JSX.Element => {
         handleMouseDownOnGrid,
     } = usePianoRoll(noteLength, setNoteLength);
 
-    useEffect(() => {
-        console.log(notes);
-    }, [notes]);
     return (
         <>
             <NoteLengthContext.Provider value={{ noteLength, setNoteLength }}>

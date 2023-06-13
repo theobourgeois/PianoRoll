@@ -21,11 +21,11 @@ export const Grid = ({ handleMouseDownOnGrid }: GridProps): JSX.Element => {
 
         handleScroll();
         document.addEventListener("scroll", handleScroll);
-        document.addEventListener("resize", handleScroll);
+        window.addEventListener("resize", handleScroll);
 
         return () => {
             document.removeEventListener("scroll", handleScroll);
-            document.removeEventListener("resize", handleScroll);
+            window.removeEventListener("resize", handleScroll);
         };
     }, []);
 
