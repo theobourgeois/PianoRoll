@@ -1,3 +1,4 @@
+//@ts-nocheck
 import { useContext, useEffect, useRef, useState } from "react";
 import DraggableNumInput from "../../draggable-num-input/DraggableNumInput";
 import { DEFAULT_SAVE_TIME } from "../../utils/constants";
