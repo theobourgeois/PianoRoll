@@ -160,7 +160,7 @@ export const Grid = ({
                 className="bg-slate-700 absolute w-full h-full origin-top-left"
                 style={{
                     backgroundRepeat: "repeat",
-                    backgroundImage: 'url("public/assets/grid-01.svg")',
+                    backgroundImage: 'url("assets/grid-01.svg")',
                     left: PIANO_WIDTH,
                     height: "3840px",
                 }}

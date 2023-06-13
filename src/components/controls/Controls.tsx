@@ -356,7 +356,7 @@ export const Controls = (): JSX.Element => {
             <div className="flex ">
                 <div
                     onClick={togglePlay}
-                    className="bg-blue-500 ml-2 w-8 h-8 flex items-center justify-center rounded-md"
+                    className="bg-blue-500 hover:bg-blue-600 ml-2 w-8 h-8 flex items-center justify-center rounded-md"
                 >
                     {playing ? (
                         <TbPlayerPauseFilled
@@ -369,7 +369,7 @@ export const Controls = (): JSX.Element => {
                 </div>
                 <div
                     onClick={handleStop}
-                    className="bg-red-500 mx-2 w-8 h-8 flex items-center justify-center rounded-md"
+                    className="bg-red-500 hover:bg-red-600 mx-2 w-8 h-8 flex items-center justify-center rounded-md"
                 >
                     <TbPlayerStopFilled color="white" className="w-6 h-6" />
                 </div>
@@ -405,11 +405,19 @@ export const Controls = (): JSX.Element => {
                     </div>
                     <InstrumentOptions />
                 </div>
-                <div className="flex items-center">
-                    <div className="bg-blue-500 mx-2 w-6 h-6 flex items-center justify-center rounded-md">
-                        <CgImport color="white" className="w-5 h-5" />
-                    </div>
-                    <input ref={fileInputRef} type="file" />
+                <div className="flex items-center relative mx-2">
+                    <lable
+                        className="flex bg-blue-500 hover:bg-blue-600  px-2 rounded-sm text-white"
+                        hmtlFor="file"
+                    >
+                        <CgImport color="white" className="w-5 h-5 mr-1" />
+                        Import MIDI file
+                    </lable>
+                    <input
+                        className="absolute opacity-0"
+                        ref={fileInputRef}
+                        type="file"
+                    />
                 </div>
             </div>
         </div>
