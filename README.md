@@ -2,6 +2,8 @@
 
 Piano Roll is a dynamic piano roll website made with React.
 
+![Screenshot](screenshot.png)
+
 ## Features
 
 -   128 different instruments to select from.
