@@ -1,0 +1,7 @@
+{
+    "title" : "Piano Roll",
+    "bpm" : 140,
+    "note_width": 8,
+    "note_height" : 32,
+    "snap_value": 1
+}
