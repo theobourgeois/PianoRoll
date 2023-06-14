@@ -43,6 +43,7 @@ export const Controls = (): JSX.Element => {
     useEffect(() => {
         // @ts-ignore
         MidiParser.parse(fileInputRef.current, (obj) => {
+            setNotes(midiToNoteData(obj));
             console.log(midiToNoteData(obj));
         });
     }, []);
