@@ -13,11 +13,14 @@ export const usePianoRoll = (noteLength: number, setNoteLength: (length: number)
 
     const handleChangeNote = (note: NoteData) => {
         const newNotes = [...notes];
-        const index = notes.findIndex((n: NoteData) => n.id === note.id);
+        const index = newNotes.findIndex((n: NoteData) => n.id === note.id);
 
-        newNotes[index] = note;
-        setNotes(newNotes);
+        if (index > -1) { // Ensure the note is found
+            newNotes[index] = note;
+            setNotes(newNotes);
+        }
     }
+
 
 
     const handleResizeSelectedNotes = useCallback((col: number, note: NoteData) => {
@@ -186,7 +189,6 @@ export const usePianoRoll = (noteLength: number, setNoteLength: (length: number)
     const handleSelectNotesInBox = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
         const startPos = getNoteCoordsFromMousePosition(e);
         let currentPos = startPos;
-        let selectedNotes = new Set();
 
         handleNoteMouseEvents((row, col) => {
             const minRow = Math.min(startPos.row, currentPos.row);
@@ -194,30 +196,30 @@ export const usePianoRoll = (noteLength: number, setNoteLength: (length: number)
             const minCol = Math.min(startPos.col, currentPos.col);
             const maxCol = Math.max(startPos.col, currentPos.col);
 
-            const notesInBox = notes.filter((note: NoteData) => {
+            // Create a new list of notes with updated selection status
+            const newNotes = []
+            for (const note of notes) {
                 const noteRow = note.row;
                 const noteStartCol = note.column;
                 const noteEndCol = note.column + note.units;
-
-                return (
+                const inBox = (
                     minRow <= noteRow &&
                     noteRow <= maxRow &&
                     ((minCol <= noteStartCol && noteStartCol <= maxCol) ||
                         (minCol <= noteEndCol && noteEndCol <= maxCol) ||
                         (noteStartCol <= minCol && maxCol <= noteEndCol))
                 );
-            });
 
-            notesInBox.forEach((note: NoteData) => {
-                if (!selectedNotes.has(note.id)) {
-                    handleSelectNote(note);
-                    selectedNotes.add(note.id);
-                }
-            });
+                newNotes.push({ ...note, selected: inBox })
+
+            }
+
+            setNotes(newNotes);
 
             currentPos = { row, col };
         });
-    }, [notes, handleSelectNote])
+    }, [notes, setNotes]);
+
 
     const handleDeleteNotesGrid = useCallback(() => {
         handleNoteMouseEvents((row, col) => {

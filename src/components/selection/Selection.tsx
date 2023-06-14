@@ -60,7 +60,7 @@ export const Selection = () => {
                         ? "none"
                         : "1px solid black",
             }}
-            className="bg-opacity-40 bg-orange-500 absolute z-40"
+            className="bg-opacity-40 bg-blue-500 absolute z-40"
         ></div>
     );
 };

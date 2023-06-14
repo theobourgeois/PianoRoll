@@ -25,5 +25,6 @@ export const DEFAULT_SAVE_TIME = 1000 as const;
 export const NOTE_COLOR = "rgb(96 165 250)" as const;
 export const SELECTED_NOTE_COLOR = "#bfdbfe" as const;
 export const BAR_LENGTH = 32 as const;
+export const SCROLL_VALUE = 20 as const;
 
 

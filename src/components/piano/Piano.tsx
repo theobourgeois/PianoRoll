@@ -18,7 +18,7 @@ export const Piano = (): JSX.Element => {
     return (
         <div
             onMouseDown={handleMouseDown}
-            className="select-none flex flex-col"
+            className="select-none flex flex-col z-50"
         >
             {allNotes.map((note) => (
                 <PianoNote key={idGen.next().value as number} note={note} />

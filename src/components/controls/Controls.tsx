@@ -189,16 +189,35 @@ export const Controls = (): JSX.Element => {
         const noSelectedNote = notesRef.current.every(
             (note: NoteData) => !note.selected
         );
+        const selectedNotes = notesRef.current.filter((note) => note.selected);
 
         for (const note of notesRef.current) {
             if (!note.selected && !noSelectedNote) continue;
 
             const newNote = {
                 ...note,
-                column: note.column + getNearestBar(notesRef.current),
+                column:
+                    note.column +
+                    getNearestBar(
+                        noSelectedNote ? notesRef.current : selectedNotes
+                    ),
                 id: idGen.next().value as number,
             };
             newNotes.push(newNote);
+        }
+        setNotes(newNotes);
+    };
+
+    const handleDeleteNotes = () => {
+        const noSelectedNote = notesRef.current.every(
+            (note: NoteData) => !note.selected
+        );
+        if (noSelectedNote) return setNotes([]);
+        const newNotes = [...notesRef.current];
+        for (const note of notesRef.current) {
+            if (note.selected) {
+                newNotes.splice(newNotes.indexOf(note), 1);
+            }
         }
         setNotes(newNotes);
     };
@@ -212,7 +231,7 @@ export const Controls = (): JSX.Element => {
                 case "-":
                     if (controlCommand) return;
                 case "Delete":
-                    setNotes([]);
+                    handleDeleteNotes();
                     break;
                 case " ":
                     if (playingRef.current) handleStop();
@@ -255,6 +274,7 @@ export const Controls = (): JSX.Element => {
 
             e.preventDefault();
         };
+
         document.addEventListener("keydown", handleKeyDown);
         const storedNotes = localStorage.getItem("notes");
         if (storedNotes) setNotes(JSON.parse(storedNotes));

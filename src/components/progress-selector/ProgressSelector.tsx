@@ -1,4 +1,4 @@
-import { useContext } from "react";
+import { useContext, useEffect, useState } from "react";
 import { NOTE_WIDTH, PIANO_WIDTH } from "../../utils/constants";
 import { ProgressContext, SnapValueContext } from "../../utils/context";
 import {
@@ -10,6 +10,7 @@ import {
 export const ProgressSelector = () => {
     const { progress, setProgress } = useContext(ProgressContext);
     const { snapValue } = useContext(SnapValueContext);
+    const [barTop, setBarTop] = useState(0);
 
     const handleMouseDown = (e: React.MouseEvent) => {
         const { col } = getNoteCoordsFromMousePosition(e);
@@ -19,24 +20,43 @@ export const ProgressSelector = () => {
         });
     };
 
+    useEffect(() => {
+        const handleScroll = () => {
+            setBarTop(window.scrollY);
+        };
+        handleScroll();
+        document.addEventListener("scroll", handleScroll);
+        return () => document.removeEventListener("scroll", handleScroll);
+    });
+
     return (
-        <div
-            onMouseDown={handleMouseDown}
-            style={{ left: PIANO_WIDTH, top: 0 }}
-            className="fixed h-4 w-screen bg-slate-400 z-40 overflow-hidden"
-        >
-            <div className="relative">
-                <div className="w-16 overflow-hidden inline-block">
-                    <div
-                        style={{
-                            left: progress * NOTE_WIDTH - 8,
-                            top: 0,
-                            transition: "100ms",
-                        }}
-                        className="h-3 w-3 z-50 absolute rounded-sm bg-orange-400 -rotate-45 transform origin-top-left"
-                    ></div>
+        <>
+            <div
+                className="absolute h-screen bg-black z-40"
+                style={{
+                    left: PIANO_WIDTH + progress * NOTE_WIDTH,
+                    top: barTop,
+                    display: progress == 0 ? "none" : "",
+                    width: "1px",
+                    transition: "70ms",
+                }}
+            ></div>
+            <div
+                style={{
+                    left: PIANO_WIDTH + progress * NOTE_WIDTH - 8,
+                    top: 0,
+                    transition: "100ms",
+                }}
+                className="h-3 w-3 z-40 absolute rounded-sm bg-blue-500 -rotate-45 transform origin-top-left"
+            ></div>
+            <div
+                onMouseDown={handleMouseDown}
+                className="fixed h-4 w-screen bg-slate-400 z-30 overflow-hidden"
+            >
+                <div className="relative">
+                    <div className="w-16 overflow-hidden inline-block"></div>
                 </div>
             </div>
-        </div>
+        </>
     );
 };

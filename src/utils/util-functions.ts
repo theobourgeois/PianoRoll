@@ -1,5 +1,5 @@
 import { NoteData, Position } from "./types";
-import { BAR_LENGTH, NOTES, NOTE_HEIGHT, NOTE_WIDTH, PIANO_WIDTH } from "./constants";
+import { BAR_LENGTH, NOTES, NOTE_HEIGHT, NOTE_WIDTH, PIANO_WIDTH, SCROLL_VALUE } from "./constants";
 import { allNotes, idGen, audioContext, instrumentPlayer, setInstrumentPlayer } from "./globals";
 import Soundfont, { InstrumentName } from "soundfont-player";
 
@@ -35,9 +35,17 @@ export const handleNoteMouseEvents = (
         //@ts-ignore
         window.removeEventListener("mouseup", currentMouseUpHandler);
     }
-
     const handleMouseMove = (e: MouseEvent) => {
         const { row, col } = getNoteCoordsFromMousePosition(e);
+        const pastWindowWidthRight = e.clientX > window.innerWidth;
+        const pastWindowWidthLeft = e.clientX < 0;
+        const pastWindowHeightTop = e.clientY > window.innerHeight;
+        const pastWindowHeightBottom = e.clientY < 0;
+
+        const widthScrollValue = pastWindowWidthRight ? SCROLL_VALUE : pastWindowWidthLeft ? -SCROLL_VALUE : 0;
+        const heightScrollValue = pastWindowHeightTop ? SCROLL_VALUE : pastWindowHeightBottom ? -SCROLL_VALUE : 0;
+
+        window.scrollBy(widthScrollValue, heightScrollValue);
         mouseMoveHandler(row, col, e);
     };
 

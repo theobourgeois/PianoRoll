@@ -36,15 +36,6 @@ export const Grid = ({ handleMouseDownOnGrid }: GridProps): JSX.Element => {
 
     return (
         <>
-            <div
-                className="fixed h-screen bg-black z-40"
-                style={{
-                    left: PIANO_WIDTH + progress * NOTE_WIDTH,
-                    display: progress == 0 ? "none" : "",
-                    transition: "100ms",
-                    width: "1px",
-                }}
-            ></div>
             <ProgressSelector />
             <div
                 onMouseDown={handleMouseDownOnGrid}
