@@ -1,5 +1,9 @@
 import { useContext, useEffect, useRef } from "react";
-import { NOTE_WIDTH, PIANO_WIDTH } from "../../utils/constants";
+import {
+    NOTE_WIDTH,
+    PIANO_ROLL_HEIGHT,
+    PIANO_WIDTH,
+} from "../../utils/constants";
 import { ProgressContext } from "../../utils/context";
 import { ProgressSelector } from "../progress-selector/ProgressSelector";
 
@@ -46,7 +50,7 @@ export const Grid = ({ handleMouseDownOnGrid }: GridProps): JSX.Element => {
                     backgroundRepeat: "repeat",
                     backgroundImage: 'url("assets/grid-01.svg")',
                     left: PIANO_WIDTH,
-                    height: "3840px",
+                    height: PIANO_ROLL_HEIGHT + "px",
                 }}
             ></div>
         </>

@@ -1,5 +1,9 @@
-import { useContext, useEffect, useState } from "react";
-import { NOTE_WIDTH, PIANO_WIDTH } from "../../utils/constants";
+import { useContext, useEffect, useRef, useState } from "react";
+import {
+    NOTE_WIDTH,
+    PIANO_ROLL_HEIGHT,
+    PIANO_WIDTH,
+} from "../../utils/constants";
 import { ProgressContext, SnapValueContext } from "../../utils/context";
 import {
     getNoteCoordsFromMousePosition,
@@ -25,30 +29,43 @@ export const ProgressSelector = () => {
             setBarTop(window.scrollY);
         };
         handleScroll();
-        document.addEventListener("scroll", handleScroll);
+        document.addEventListener("wheel", handleScroll);
         return () => document.removeEventListener("scroll", handleScroll);
     });
 
     return (
         <>
             <div
-                className="absolute h-screen bg-black z-40"
+                className="relative h-screen z-40"
                 style={{
-                    left: PIANO_WIDTH + progress * NOTE_WIDTH,
-                    top: barTop,
-                    display: progress == 0 ? "none" : "",
-                    width: "1px",
-                    transition: "70ms",
-                }}
-            ></div>
-            <div
-                style={{
-                    left: PIANO_WIDTH + progress * NOTE_WIDTH - 8,
+                    left: progress * NOTE_WIDTH,
+                    transition: "100ms left",
                     top: 0,
-                    transition: "100ms",
+                    height: PIANO_ROLL_HEIGHT + "px",
                 }}
-                className="h-3 w-3 z-40 absolute rounded-sm bg-blue-500 -rotate-45 transform origin-top-left"
-            ></div>
+            >
+                <div
+                    className="absolute h-screen bg-black z-40"
+                    style={{
+                        display: progress == 0 ? "none" : "",
+                        width: "1px",
+                        height: PIANO_ROLL_HEIGHT + "px",
+                    }}
+                ></div>
+            </div>
+
+            <div
+                className="relative h-screen z-40"
+                style={{
+                    left: progress * NOTE_WIDTH - 8,
+                    transition: "100ms left",
+                    top: 0,
+                    height: PIANO_ROLL_HEIGHT + "px",
+                }}
+            >
+                <div className="sticky h-3 w-3 z-40 top-0 rounded-sm bg-blue-500 -rotate-45 transform origin-top-left"></div>
+            </div>
+
             <div
                 onMouseDown={handleMouseDown}
                 className="fixed h-4 w-screen bg-slate-400 z-30 overflow-hidden"
