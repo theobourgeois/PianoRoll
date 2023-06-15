@@ -82,7 +82,6 @@ export const Controls = (): JSX.Element => {
                 }
             }
             setProgress(i);
-            // wait for next beat
             await timer(unitTimeMs);
         }
         if (progressRef.current > 0) {

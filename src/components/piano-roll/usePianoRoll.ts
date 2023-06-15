@@ -186,7 +186,7 @@ export const usePianoRoll = (noteLength: number, setNoteLength: (length: number)
         });
     }, [snapValue, handleChangeNote])
 
-    const handleSelectNotesInBox = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    const handleSelectNotesInBox = useCallback((e: React.MouseEvent<HTMLDivElement>, shiftKey: boolean) => {
         const startPos = getNoteCoordsFromMousePosition(e);
         let currentPos = startPos;
 
@@ -210,7 +210,7 @@ export const usePianoRoll = (noteLength: number, setNoteLength: (length: number)
                         (noteStartCol <= minCol && maxCol <= noteEndCol))
                 );
 
-                newNotes.push({ ...note, selected: inBox })
+                newNotes.push({ ...note, selected: shiftKey ? note.selected || inBox : inBox })
 
             }
 
@@ -236,7 +236,7 @@ export const usePianoRoll = (noteLength: number, setNoteLength: (length: number)
     }, [notes, handleDeleteMultipleNotes])
 
     const handleMouseDownOnGrid = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
-        if (e.metaKey || e.ctrlKey) return handleSelectNotesInBox(e);
+        if (e.metaKey || e.ctrlKey) return handleSelectNotesInBox(e, e.shiftKey);
         if (e.button === RIGHT_CLICK) return handleDeleteNotesGrid();
         handleDeselectAllNotes();
         const { row, col } = getNoteCoordsFromMousePosition(e);

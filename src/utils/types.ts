@@ -1,3 +1,5 @@
+import { InstrumentName } from "soundfont-player";
+
 export type NoteData = {
     row: number;
     column: number;
@@ -14,3 +16,8 @@ export type Position = {
 }
 
 export type Direction = 'top' | 'bottom' | 'left' | 'right';
+
+export type InstrumentOptions = {
+    name: string;
+    value: InstrumentName
+}

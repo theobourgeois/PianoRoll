@@ -15,10 +15,12 @@ Piano Roll is a dynamic piano roll website made with React.
 
 ### Note Management
 
--   **Place Note:** Left Mouse Button
--   **Delete Note:** Right Mouse Button
+-   **Place Note:** Left Mouse
+-   **Delete Note:** Right Mouse
+-   **Delete All Notes:** Delete
 -   **Select Notes:** Ctrl/Cmd + Left Mouse Button
--   **Duplicate Note(s):** Ctrl/Cmd + B
+-   **Duplicate Note(s) to Next Bar:** Ctrl/Cmd + B
+-   **Duplicate Selected Note(s):** Ctrl/Cmd + Left Mouse (While Selecting Note(s))
 -   **Copy Note(s):** Ctrl/Cmd + C
 -   **Paste Note(s):** Ctrl/Cmd + V
 -   **Cut Note(s):** Ctrl/Cmd + X

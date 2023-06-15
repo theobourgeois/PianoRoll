@@ -1,5 +1,5 @@
 import { getAllNotesFromOctaveCount, idGenerator } from "./util-functions";
-import Soundfont, { Player } from "soundfont-player";
+import { Player } from "soundfont-player";
 
 export const allNotes = getAllNotesFromOctaveCount(10);
 export const idGen = idGenerator();
@@ -9,4 +9,3 @@ export let instrumentPlayer: Player | null = null;
 export const setInstrumentPlayer = (player: Player) => {
     instrumentPlayer = player;
 }
-
