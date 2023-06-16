@@ -63,13 +63,16 @@ export const handleNoteMouseEvents = (
 };
 
 
-export const getAllNotesFromOctaveCount = (octaveCount: number): string[] => {
+export const getAllNotesFromOctaveCount = (octaveCount: number, startOctave = 0): string[] => {
     let result: string[] = [];
-    for (let i = 0; i < octaveCount; i++) {
+    for (let i = startOctave; i < octaveCount; i++) {
         result = result.concat(Object.keys(NOTES).map((note) => `${note}${i}`));
     }
     return result.reverse();
 };
+
+export const getHeightOfPianoRoll = () => allNotes.length * NOTE_HEIGHT;
+
 
 export const getNoteCoordsFromMousePosition = (
     e: React.MouseEvent | MouseEvent
@@ -115,7 +118,18 @@ export const snapColumn = (col: number, snapValue: number) => {
     return col - mod
 }
 
-export const timer = (ms: number) => new Promise((res) => setTimeout(res, ms));
+
+export const timer = (ms: number) => {
+    return new Promise((res) => {
+        const targetTime = audioContext.currentTime + ms / 1000;
+        const intervalId = setInterval(() => {
+            if (audioContext.currentTime >= targetTime) {
+                clearInterval(intervalId);
+                res();
+            }
+        }, 1);
+    });
+};
 
 export const getMousePos = (e: MouseEvent | React.MouseEvent): Position => {
     const x = e.clientX + window.scrollX;

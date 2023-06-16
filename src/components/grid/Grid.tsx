@@ -1,10 +1,7 @@
 import { useContext, useEffect, useRef } from "react";
-import {
-    NOTE_WIDTH,
-    PIANO_ROLL_HEIGHT,
-    PIANO_WIDTH,
-} from "../../utils/constants";
+import { PIANO_WIDTH } from "../../utils/constants";
 import { ProgressContext } from "../../utils/context";
+import { PIANO_ROLL_HEIGHT } from "../../utils/globals";
 import { ProgressSelector } from "../progress-selector/ProgressSelector";
 
 interface GridProps {

@@ -5,7 +5,6 @@ import { allNotes, idGen } from "../../utils/globals";
 import { NoteData } from "../../utils/types";
 import { snapColumn, getMousePos, playNote, handleNoteMouseEvents, getNoteCoordsFromMousePosition, makeNewNote } from "../../utils/util-functions";
 
-
 export const usePianoRoll = (noteLength: number, setNoteLength: (length: number) => void) => {
     const { notes, setNotes } = useContext(NotesContext);
     const { snapValue } = useContext(SnapValueContext);
@@ -191,32 +190,34 @@ export const usePianoRoll = (noteLength: number, setNoteLength: (length: number)
         let currentPos = startPos;
 
         handleNoteMouseEvents((row, col) => {
+
             const minRow = Math.min(startPos.row, currentPos.row);
             const maxRow = Math.max(startPos.row, currentPos.row);
             const minCol = Math.min(startPos.col, currentPos.col);
             const maxCol = Math.max(startPos.col, currentPos.col);
 
-            // Create a new list of notes with updated selection status
-            const newNotes = []
-            for (const note of notes) {
+            const newNotes = [];
+            for (let i = 0; i < notes.length; i++) {
+                const note = notes[i]
                 const noteRow = note.row;
                 const noteStartCol = note.column;
                 const noteEndCol = note.column + note.units;
-                const inBox = (
+                const inBox =
                     minRow <= noteRow &&
                     noteRow <= maxRow &&
                     ((minCol <= noteStartCol && noteStartCol <= maxCol) ||
                         (minCol <= noteEndCol && noteEndCol <= maxCol) ||
-                        (noteStartCol <= minCol && maxCol <= noteEndCol))
-                );
+                        (noteStartCol <= minCol && maxCol <= noteEndCol));
 
-                newNotes.push({ ...note, selected: shiftKey ? note.selected || inBox : inBox })
-
+                newNotes.push({
+                    ...note,
+                    selected: shiftKey ? note.selected || inBox : inBox,
+                });
             }
-
             setNotes(newNotes);
 
             currentPos = { row, col };
+
         });
     }, [notes, setNotes]);
 

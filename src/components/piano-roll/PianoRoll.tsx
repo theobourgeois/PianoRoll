@@ -20,7 +20,7 @@ export const PianoRoll = (): JSX.Element => {
     } = usePianoRoll(noteLength, setNoteLength);
 
     return (
-        <>
+        <div>
             <NoteLengthContext.Provider value={{ noteLength, setNoteLength }}>
                 <Selection />
                 <div className="flex w-full">
@@ -37,6 +37,6 @@ export const PianoRoll = (): JSX.Element => {
                     />
                 ))}
             </NoteLengthContext.Provider>
-        </>
+        </div>
     );
 };

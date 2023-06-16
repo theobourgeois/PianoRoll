@@ -1,10 +1,7 @@
 import { useContext, useEffect, useRef, useState } from "react";
-import {
-    NOTE_WIDTH,
-    PIANO_ROLL_HEIGHT,
-    PIANO_WIDTH,
-} from "../../utils/constants";
+import { NOTE_WIDTH } from "../../utils/constants";
 import { ProgressContext, SnapValueContext } from "../../utils/context";
+import { PIANO_ROLL_HEIGHT } from "../../utils/globals";
 import {
     getNoteCoordsFromMousePosition,
     handleNoteMouseEvents,
