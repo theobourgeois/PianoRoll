@@ -236,7 +236,7 @@ export const usePianoRoll = (noteLength: number, setNoteLength: (length: number)
         });
     }, [notes, handleDeleteMultipleNotes])
 
-    const handleMouseDownOnGrid = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    const handleMouseDownOnGrid = useCallback((e: React.MouseEvent) => {
         if (e.metaKey || e.ctrlKey) return handleSelectNotesInBox(e, e.shiftKey);
         if (e.button === RIGHT_CLICK) return handleDeleteNotesGrid();
         handleDeselectAllNotes();
