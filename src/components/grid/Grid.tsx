@@ -4,12 +4,7 @@ import { ProgressContext } from "../../utils/context";
 import { PIANO_ROLL_HEIGHT } from "../../utils/globals";
 import { ProgressSelector } from "../progress-selector/ProgressSelector";
 
-interface GridProps {
-    handleMouseDownOnGrid: (e: React.MouseEvent<HTMLDivElement>) => void;
-}
-
-export const Grid = ({ handleMouseDownOnGrid }: GridProps): JSX.Element => {
-    const { progress } = useContext(ProgressContext);
+export const Grid = (): JSX.Element => {
     const gridRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
@@ -39,10 +34,9 @@ export const Grid = ({ handleMouseDownOnGrid }: GridProps): JSX.Element => {
         <>
             <ProgressSelector />
             <div
-                onMouseDown={handleMouseDownOnGrid}
                 onContextMenu={handleRightClick}
                 ref={gridRef}
-                className="bg-slate-700 absolute w-full h-full origin-top-left"
+                className="bg-slate-700 z-10 absolute w-full h-full origin-top-left"
                 style={{
                     backgroundRepeat: "repeat",
                     backgroundImage: 'url("assets/grid-01.svg")',

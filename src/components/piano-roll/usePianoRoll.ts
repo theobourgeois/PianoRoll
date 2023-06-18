@@ -1,4 +1,4 @@
-import { useCallback, useContext } from "react";
+import React, { useCallback, useContext } from "react";
 import { PIANO_WIDTH, NOTE_WIDTH, RIGHT_CLICK } from "../../utils/constants";
 import { NotesContext, SnapValueContext, PlayingContext } from "../../utils/context";
 import { allNotes, idGen } from "../../utils/globals";
@@ -14,13 +14,11 @@ export const usePianoRoll = (noteLength: number, setNoteLength: (length: number)
         const newNotes = [...notes];
         const index = newNotes.findIndex((n: NoteData) => n.id === note.id);
 
-        if (index > -1) { // Ensure the note is found
+        if (index > -1) {
             newNotes[index] = note;
             setNotes(newNotes);
         }
     }
-
-
 
     const handleResizeSelectedNotes = useCallback((col: number, note: NoteData) => {
         const newNotes = [...notes];
@@ -43,7 +41,7 @@ export const usePianoRoll = (noteLength: number, setNoteLength: (length: number)
         note: NoteData,
         row: number,
         col: number,
-        e: React.MouseEvent<HTMLDivElement>
+        e: React.MouseEvent
     ) => {
         if (!note.selected) return;
 
@@ -122,10 +120,10 @@ export const usePianoRoll = (noteLength: number, setNoteLength: (length: number)
     };
 
     const handleMoveNote = useCallback((
-        e: React.MouseEvent<HTMLDivElement>,
+        e: React.MouseEvent,
         note: NoteData
     ) => {
-        if (e.button === RIGHT_CLICK) return;
+        if (e.button === RIGHT_CLICK) return handleDeleteNote(note);
         if ((e.metaKey || e.ctrlKey) && e.shiftKey) return;
         if (e.metaKey || e.ctrlKey) return handleSelectNote(note);
 
@@ -185,7 +183,7 @@ export const usePianoRoll = (noteLength: number, setNoteLength: (length: number)
         });
     }, [snapValue, handleChangeNote])
 
-    const handleSelectNotesInBox = useCallback((e: React.MouseEvent<HTMLDivElement>, shiftKey: boolean) => {
+    const handleSelectNotesInBox = useCallback((e: React.MouseEvent, shiftKey: boolean) => {
         const startPos = getNoteCoordsFromMousePosition(e);
         let currentPos = startPos;
 
@@ -222,25 +220,36 @@ export const usePianoRoll = (noteLength: number, setNoteLength: (length: number)
     }, [notes, setNotes]);
 
 
-    const handleDeleteNotesGrid = useCallback(() => {
+    const handleDeleteNotesGrid = useCallback((e: React.MouseEvent) => {
+        const { row, col } = getNoteCoordsFromMousePosition(e);
+        const note = notes.find((note: NoteData) => noteOnGrid(note, row, col))
+        if (note) handleDeleteNote(note as NoteData);
+
         handleNoteMouseEvents((row, col) => {
-            const deletableNotes = notes.filter((note: NoteData) => {
-                return (
-                    note.column < col &&
-                    note.column + note.units > col &&
-                    note.row === row
-                );
-            });
+            const deletableNotes = notes.filter((note: NoteData) => noteOnGrid(note, row, col));
             if (deletableNotes.length > 0)
                 handleDeleteMultipleNotes(deletableNotes);
         });
     }, [notes, handleDeleteMultipleNotes])
 
+    const noteOnGrid = (note: NoteData, row: number, col: number) => {
+        return (
+            note.column <= col &&
+            note.column + note.units > col &&
+            note.row === row
+        );
+    }
+
     const handleMouseDownOnGrid = useCallback((e: React.MouseEvent) => {
-        if (e.metaKey || e.ctrlKey) return handleSelectNotesInBox(e, e.shiftKey);
-        if (e.button === RIGHT_CLICK) return handleDeleteNotesGrid();
-        handleDeselectAllNotes();
         const { row, col } = getNoteCoordsFromMousePosition(e);
+        const note = notes.find((note: NoteData) => noteOnGrid(note, row, col))
+        if (note) return handleMoveNote(e, note)
+
+
+        if (e.metaKey || e.ctrlKey) return handleSelectNotesInBox(e, e.shiftKey);
+        if (e.button === RIGHT_CLICK) return handleDeleteNotesGrid(e);
+        handleDeselectAllNotes();
+
         const newNote = makeNewNote(
             row,
             snapColumn(col, snapValue),

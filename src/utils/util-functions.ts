@@ -44,7 +44,6 @@ export const handleNoteMouseEvents = (
 
         const widthScrollValue = pastWindowWidthRight ? SCROLL_VALUE : pastWindowWidthLeft ? -SCROLL_VALUE : 0;
         const heightScrollValue = pastWindowHeightTop ? SCROLL_VALUE : pastWindowHeightBottom ? -SCROLL_VALUE : 0;
-
         window.scrollBy(widthScrollValue, heightScrollValue);
         mouseMoveHandler(row, col, e);
     };
@@ -125,6 +124,7 @@ export const timer = (ms: number) => {
         const intervalId = setInterval(() => {
             if (audioContext.currentTime >= targetTime) {
                 clearInterval(intervalId);
+                // @ts-ignore
                 res();
             }
         }, 1);
