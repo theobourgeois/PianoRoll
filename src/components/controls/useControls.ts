@@ -39,8 +39,8 @@ export const useControls = () => {
         playPianoRoll();
     };
 
-    const handleStop = (nextStartProgress: number) => {
-        setProgress(nextStartProgress);
+    const handleStop = () => {
+        setProgress(tempProgressRef.current);
         setPlaying(false);
         playingRef.current = false;
     };
@@ -214,7 +214,7 @@ export const useControls = () => {
                     handleDeleteNotes();
                     break;
                 case " ":
-                    if (playingRef.current) handleStop(tempProgressRef.current);
+                    if (playingRef.current) handleStop();
                     else handlePlay();
                     break;
                 case "ArrowLeft":
