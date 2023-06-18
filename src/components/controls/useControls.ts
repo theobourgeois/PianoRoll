@@ -1,13 +1,23 @@
 import MidiParser from "midi-parser-js";
 import { useContext, useRef, useEffect } from "react";
 import { DEFAULT_SAVE_TIME } from "../../utils/constants";
-import { NotesContext, BPMContext, ProgressContext, PlayingContext, SnapValueContext } from "../../utils/context";
+import {
+    NotesContext,
+    BPMContext,
+    ProgressContext,
+    PlayingContext,
+    SnapValueContext,
+} from "../../utils/context";
 import { allNotes, idGen } from "../../utils/globals";
 import { NoteData, Direction } from "../../utils/types";
-import { midiToNoteData, getNearestBar, playNote, timer } from "../../utils/util-functions";
+import {
+    midiToNoteData,
+    getNearestBar,
+    playNote,
+    timer,
+} from "../../utils/util-functions";
 
 export const useControls = () => {
-
     const { notes, setNotes } = useContext(NotesContext);
     const { BPM, setBPM } = useContext(BPMContext);
     const { progress, setProgress } = useContext(ProgressContext);
@@ -320,7 +330,6 @@ export const useControls = () => {
         handleBPMChange,
         handleSnapValueChange,
         snapValue,
-        fileInputRef
-    }
-
-}
+        fileInputRef,
+    };
+};
