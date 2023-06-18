@@ -80,12 +80,6 @@ export const PianoRoll = (): JSX.Element => {
         context.fillRect(x, y, note.units * NOTE_WIDTH, NOTE_HEIGHT);
     };
 
-    const handleClick = (e: React.MouseEvent<HTMLCanvasElement>) => {
-        const { row, col } = getNoteCoordsFromMousePosition(e);
-        const note = makeNewNote(row, col, noteLength);
-        placeNote(note);
-    };
-
     return (
         <div className="flex">
             <Piano />
