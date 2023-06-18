@@ -125,6 +125,7 @@ export const timer = (ms: number) => {
         const intervalId = setInterval(() => {
             if (audioContext.currentTime >= targetTime) {
                 clearInterval(intervalId);
+                // @ts-ignore
                 res();
             }
         }, 1);
