@@ -1,6 +1,6 @@
 import { InstrumentOptions } from "./types";
 
-export const NOTES: { [key: string]: number; } = {
+export const NOTES: { [key: string]: number } = {
     c: 16,
     "c#": 17.32,
     d: 18.35,
@@ -25,6 +25,7 @@ export const RIGHT_CLICK = 2 as const;
 export const LEFT_CLICK = 0 as const;
 export const DEFAULT_SAVE_TIME = 1000 as const;
 export const NOTE_COLOR = "rgb(96 165 250)" as const;
+export const NOTE_STROKE_COLOR = "#1e40af" as const;
 export const SELECTED_NOTE_COLOR = "#bfdbfe" as const;
 export const BAR_LENGTH = 32 as const;
 export const SCROLL_VALUE = 20 as const;
@@ -32,516 +33,514 @@ export const SCROLL_VALUE = 20 as const;
 export const INSTRUMENT_OPTIONS: InstrumentOptions[] = [
     {
         name: "Acoustic Grand Piano",
-        value: "acoustic_grand_piano"
+        value: "acoustic_grand_piano",
     },
     {
         name: "Bright Acoustic Piano",
-        value: "bright_acoustic_piano"
+        value: "bright_acoustic_piano",
     },
     {
         name: "Electric Grand Piano",
-        value: "electric_grand_piano"
+        value: "electric_grand_piano",
     },
     {
         name: "Honkytonk Piano",
-        value: "honkytonk_piano"
+        value: "honkytonk_piano",
     },
     {
         name: "Electric Piano 1",
-        value: "electric_piano_1"
+        value: "electric_piano_1",
     },
     {
         name: "Electric Piano 2",
-        value: "electric_piano_2"
+        value: "electric_piano_2",
     },
     {
         name: "Harpsichord",
-        value: "harpsichord"
+        value: "harpsichord",
     },
     {
         name: "Clavinet",
-        value: "clavinet"
+        value: "clavinet",
     },
     {
         name: "Celesta",
-        value: "celesta"
+        value: "celesta",
     },
     {
         name: "Glockenspiel",
-        value: "glockenspiel"
+        value: "glockenspiel",
     },
     {
         name: "Music Box",
-        value: "music_box"
+        value: "music_box",
     },
     {
         name: "Vibraphone",
-        value: "vibraphone"
+        value: "vibraphone",
     },
     {
         name: "Marimba",
-        value: "marimba"
+        value: "marimba",
     },
     {
         name: "Xylophone",
-        value: "xylophone"
+        value: "xylophone",
     },
     {
         name: "Tubular Bells",
-        value: "tubular_bells"
+        value: "tubular_bells",
     },
     {
         name: "Dulcimer",
-        value: "dulcimer"
+        value: "dulcimer",
     },
     {
         name: "Drawbar Organ",
-        value: "drawbar_organ"
+        value: "drawbar_organ",
     },
     {
         name: "Percussive Organ",
-        value: "percussive_organ"
+        value: "percussive_organ",
     },
     {
         name: "Rock Organ",
-        value: "rock_organ"
+        value: "rock_organ",
     },
     {
         name: "Church Organ",
-        value: "church_organ"
+        value: "church_organ",
     },
     {
         name: "Reed Organ",
-        value: "reed_organ"
+        value: "reed_organ",
     },
     {
         name: "Accordion",
-        value: "accordion"
+        value: "accordion",
     },
     {
         name: "Harmonica",
-        value: "harmonica"
+        value: "harmonica",
     },
     {
         name: "Tango Accordion",
-        value: "tango_accordion"
+        value: "tango_accordion",
     },
     {
         name: "Acoustic Guitar Nylon",
-        value: "acoustic_guitar_nylon"
+        value: "acoustic_guitar_nylon",
     },
     {
         name: "Acoustic Guitar Steel",
-        value: "acoustic_guitar_steel"
+        value: "acoustic_guitar_steel",
     },
     {
         name: "Electric Guitar Jazz",
-        value: "electric_guitar_jazz"
+        value: "electric_guitar_jazz",
     },
     {
         name: "Electric Guitar Clean",
-        value: "electric_guitar_clean"
+        value: "electric_guitar_clean",
     },
     {
         name: "Electric Guitar Muted",
-        value: "electric_guitar_muted"
+        value: "electric_guitar_muted",
     },
     {
         name: "Overdriven Guitar",
-        value: "overdriven_guitar"
+        value: "overdriven_guitar",
     },
     {
         name: "Distortion Guitar",
-        value: "distortion_guitar"
+        value: "distortion_guitar",
     },
     {
         name: "Guitar Harmonics",
-        value: "guitar_harmonics"
+        value: "guitar_harmonics",
     },
     {
         name: "Acoustic Bass",
-        value: "acoustic_bass"
+        value: "acoustic_bass",
     },
     {
         name: "Electric Bass Finger",
-        value: "electric_bass_finger"
+        value: "electric_bass_finger",
     },
     {
         name: "Electric Bass Pick",
-        value: "electric_bass_pick"
+        value: "electric_bass_pick",
     },
     {
         name: "Fretless Bass",
-        value: "fretless_bass"
+        value: "fretless_bass",
     },
     {
         name: "Slap Bass 1",
-        value: "slap_bass_1"
+        value: "slap_bass_1",
     },
     {
         name: "Slap Bass 2",
-        value: "slap_bass_2"
+        value: "slap_bass_2",
     },
     {
         name: "Synth Bass 1",
-        value: "synth_bass_1"
+        value: "synth_bass_1",
     },
     {
         name: "Synth Bass 2",
-        value: "synth_bass_2"
+        value: "synth_bass_2",
     },
     {
         name: "Violin",
-        value: "violin"
+        value: "violin",
     },
     {
         name: "Viola",
-        value: "viola"
+        value: "viola",
     },
     {
         name: "Cello",
-        value: "cello"
+        value: "cello",
     },
     {
         name: "Contrabass",
-        value: "contrabass"
+        value: "contrabass",
     },
     {
         name: "Tremolo Strings",
-        value: "tremolo_strings"
+        value: "tremolo_strings",
     },
     {
         name: "Pizzicato Strings",
-        value: "pizzicato_strings"
+        value: "pizzicato_strings",
     },
     {
         name: "Orchestral Harp",
-        value: "orchestral_harp"
+        value: "orchestral_harp",
     },
     {
         name: "Timpani",
-        value: "timpani"
+        value: "timpani",
     },
     {
         name: "String Ensemble 1",
-        value: "string_ensemble_1"
+        value: "string_ensemble_1",
     },
     {
         name: "String Ensemble 2",
-        value: "string_ensemble_2"
+        value: "string_ensemble_2",
     },
     {
         name: "Synth Strings 1",
-        value: "synth_strings_1"
+        value: "synth_strings_1",
     },
     {
         name: "Synth Strings 2",
-        value: "synth_strings_2"
+        value: "synth_strings_2",
     },
     {
         name: "Choir Aahs",
-        value: "choir_aahs"
+        value: "choir_aahs",
     },
     {
         name: "Voice Oohs",
-        value: "voice_oohs"
+        value: "voice_oohs",
     },
     {
         name: "Synth Choir",
-        value: "synth_choir"
+        value: "synth_choir",
     },
     {
         name: "Orchestra Hit",
-        value: "orchestra_hit"
+        value: "orchestra_hit",
     },
     {
         name: "Trumpet",
-        value: "trumpet"
+        value: "trumpet",
     },
     {
         name: "Trombone",
-        value: "trombone"
+        value: "trombone",
     },
     {
         name: "Tuba",
-        value: "tuba"
+        value: "tuba",
     },
     {
         name: "Muted Trumpet",
-        value: "muted_trumpet"
+        value: "muted_trumpet",
     },
     {
         name: "French Horn",
-        value: "french_horn"
+        value: "french_horn",
     },
     {
         name: "Brass Section",
-        value: "brass_section"
+        value: "brass_section",
     },
     {
         name: "Synth Brass 1",
-        value: "synth_brass_1"
+        value: "synth_brass_1",
     },
     {
         name: "Synth Brass 2",
-        value: "synth_brass_2"
+        value: "synth_brass_2",
     },
     {
         name: "Soprano Sax",
-        value: "soprano_sax"
+        value: "soprano_sax",
     },
     {
         name: "Alto Sax",
-        value: "alto_sax"
+        value: "alto_sax",
     },
     {
         name: "Tenor Sax",
-        value: "tenor_sax"
+        value: "tenor_sax",
     },
     {
         name: "Baritone Sax",
-        value: "baritone_sax"
+        value: "baritone_sax",
     },
     {
         name: "Oboe",
-        value: "oboe"
+        value: "oboe",
     },
     {
         name: "English Horn",
-        value: "english_horn"
+        value: "english_horn",
     },
     {
         name: "Bassoon",
-        value: "bassoon"
+        value: "bassoon",
     },
     {
         name: "Clarinet",
-        value: "clarinet"
+        value: "clarinet",
     },
     {
         name: "Piccolo",
-        value: "piccolo"
+        value: "piccolo",
     },
     {
         name: "Flute",
-        value: "flute"
+        value: "flute",
     },
     {
         name: "Recorder",
-        value: "recorder"
+        value: "recorder",
     },
     {
         name: "Pan Flute",
-        value: "pan_flute"
+        value: "pan_flute",
     },
     {
         name: "Blown Bottle",
-        value: "blown_bottle"
+        value: "blown_bottle",
     },
     {
         name: "Shakuhachi",
-        value: "shakuhachi"
+        value: "shakuhachi",
     },
     {
         name: "Whistle",
-        value: "whistle"
+        value: "whistle",
     },
     {
         name: "Ocarina",
-        value: "ocarina"
+        value: "ocarina",
     },
     {
         name: "Lead 1 (Square)",
-        value: "lead_1_square"
+        value: "lead_1_square",
     },
     {
         name: "Lead 2 (Sawtooth)",
-        value: "lead_2_sawtooth"
+        value: "lead_2_sawtooth",
     },
     {
         name: "Lead 3 (Calliope)",
-        value: "lead_3_calliope"
+        value: "lead_3_calliope",
     },
     {
         name: "Lead 4 (Chiff)",
-        value: "lead_4_chiff"
+        value: "lead_4_chiff",
     },
     {
         name: "Lead 5 (Charang)",
-        value: "lead_5_charang"
+        value: "lead_5_charang",
     },
     {
         name: "Lead 6 (Voice)",
-        value: "lead_6_voice"
+        value: "lead_6_voice",
     },
     {
         name: "Lead 7 (Fifths)",
-        value: "lead_7_fifths"
+        value: "lead_7_fifths",
     },
     {
         name: "Lead 8 (Bass + Lead)",
-        value: "lead_8_bass__lead"
+        value: "lead_8_bass__lead",
     },
     {
         name: "Pad 1 (New Age)",
-        value: "pad_1_new_age"
+        value: "pad_1_new_age",
     },
     {
         name: "Pad 2 (Warm)",
-        value: "pad_2_warm"
+        value: "pad_2_warm",
     },
     {
         name: "Pad 3 (Polysynth)",
-        value: "pad_3_polysynth"
+        value: "pad_3_polysynth",
     },
     {
         name: "Pad 4 (Choir)",
-        value: "pad_4_choir"
+        value: "pad_4_choir",
     },
     {
         name: "Pad 5 (Bowed)",
-        value: "pad_5_bowed"
+        value: "pad_5_bowed",
     },
     {
         name: "Pad 6 (Metallic)",
-        value: "pad_6_metallic"
+        value: "pad_6_metallic",
     },
     {
         name: "Pad 7 (Halo)",
-        value: "pad_7_halo"
+        value: "pad_7_halo",
     },
     {
         name: "Pad 8 (Sweep)",
-        value: "pad_8_sweep"
+        value: "pad_8_sweep",
     },
     {
         name: "FX 1 (Rain)",
-        value: "fx_1_rain"
+        value: "fx_1_rain",
     },
     {
         name: "FX 2 (Soundtrack)",
-        value: "fx_2_soundtrack"
+        value: "fx_2_soundtrack",
     },
     {
         name: "FX 3 (Crystal)",
-        value: "fx_3_crystal"
+        value: "fx_3_crystal",
     },
     {
         name: "FX 4 (Atmosphere)",
-        value: "fx_4_atmosphere"
+        value: "fx_4_atmosphere",
     },
     {
         name: "FX 5 (Brightness)",
-        value: "fx_5_brightness"
+        value: "fx_5_brightness",
     },
     {
         name: "FX 6 (Goblins)",
-        value: "fx_6_goblins"
+        value: "fx_6_goblins",
     },
     {
         name: "FX 7 (Echoes)",
-        value: "fx_7_echoes"
+        value: "fx_7_echoes",
     },
     {
         name: "FX 8 (Sci-fi)",
-        value: "fx_8_scifi"
+        value: "fx_8_scifi",
     },
     {
         name: "Sitar",
-        value: "sitar"
+        value: "sitar",
     },
     {
         name: "Banjo",
-        value: "banjo"
+        value: "banjo",
     },
     {
         name: "Shamisen",
-        value: "shamisen"
+        value: "shamisen",
     },
     {
         name: "Koto",
-        value: "koto"
+        value: "koto",
     },
     {
         name: "Kalimba",
-        value: "kalimba"
+        value: "kalimba",
     },
     {
         name: "Bagpipe",
-        value: "bagpipe"
+        value: "bagpipe",
     },
     {
         name: "Fiddle",
-        value: "fiddle"
+        value: "fiddle",
     },
     {
         name: "Shanai",
-        value: "shanai"
+        value: "shanai",
     },
     {
         name: "Tinkle Bell",
-        value: "tinkle_bell"
+        value: "tinkle_bell",
     },
     {
         name: "Agogo",
-        value: "agogo"
+        value: "agogo",
     },
     {
         name: "Steel Drums",
-        value: "steel_drums"
+        value: "steel_drums",
     },
     {
         name: "Woodblock",
-        value: "woodblock"
+        value: "woodblock",
     },
     {
         name: "Taiko Drum",
-        value: "taiko_drum"
+        value: "taiko_drum",
     },
     {
         name: "Melodic Tom",
-        value: "melodic_tom"
+        value: "melodic_tom",
     },
     {
         name: "Synth Drum",
-        value: "synth_drum"
+        value: "synth_drum",
     },
     {
         name: "Reverse Cymbal",
-        value: "reverse_cymbal"
+        value: "reverse_cymbal",
     },
     {
         name: "Guitar Fret Noise",
-        value: "guitar_fret_noise"
+        value: "guitar_fret_noise",
     },
     {
         name: "Breath Noise",
-        value: "breath_noise"
+        value: "breath_noise",
     },
     {
         name: "Seashore",
-        value: "seashore"
+        value: "seashore",
     },
     {
         name: "Bird Tweet",
-        value: "bird_tweet"
+        value: "bird_tweet",
     },
     {
         name: "Telephone Ring",
-        value: "telephone_ring"
+        value: "telephone_ring",
     },
     {
         name: "Helicopter",
-        value: "helicopter"
+        value: "helicopter",
     },
     {
         name: "Applause",
-        value: "applause"
+        value: "applause",
     },
     {
         name: "Gunshot",
-        value: "gunshot"
-    }
-]
-
-
+        value: "gunshot",
+    },
+];

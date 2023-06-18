@@ -1,4 +1,4 @@
-import { useContext, useEffect, useRef, useState } from "react";
+import { useContext } from "react";
 import { NOTE_WIDTH } from "../../utils/constants";
 import { ProgressContext, SnapValueContext } from "../../utils/context";
 import { PIANO_ROLL_HEIGHT } from "../../utils/globals";
@@ -11,7 +11,6 @@ import {
 export const ProgressSelector = () => {
     const { progress, setProgress } = useContext(ProgressContext);
     const { snapValue } = useContext(SnapValueContext);
-    const [barTop, setBarTop] = useState(0);
 
     const handleMouseDown = (e: React.MouseEvent) => {
         const { col } = getNoteCoordsFromMousePosition(e);
@@ -20,15 +19,6 @@ export const ProgressSelector = () => {
             setProgress(snapColumn(col, snapValue));
         });
     };
-
-    useEffect(() => {
-        const handleScroll = () => {
-            setBarTop(window.scrollY);
-        };
-        handleScroll();
-        document.addEventListener("wheel", handleScroll);
-        return () => document.removeEventListener("scroll", handleScroll);
-    });
 
     return (
         <>

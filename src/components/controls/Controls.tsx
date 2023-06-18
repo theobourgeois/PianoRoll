@@ -1,4 +1,4 @@
-import DraggableNumInput from "../../draggable-num-input/DraggableNumInput";
+import DraggableNumInput from "../draggable-num-input/DraggableNumInput";
 import {
     TbPlayerPlayFilled,
     TbPlayerPauseFilled,

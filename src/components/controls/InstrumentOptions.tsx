@@ -1,6 +1,7 @@
 import { useContext } from "react";
 import { INSTRUMENT_OPTIONS } from "../../utils/constants";
 import { InstrumentContext } from "../../utils/context";
+import { idGen } from "../../utils/globals";
 import { SelectArrows } from "../select-arrows/SelectArrow";
 
 export const InstrumentOptions = () => {
@@ -35,7 +36,12 @@ export const InstrumentOptions = () => {
                 value={instrument}
             >
                 {INSTRUMENT_OPTIONS.map((option) => (
-                    <option value={option.value}>{option.name}</option>
+                    <option
+                        key={idGen.next().value as number}
+                        value={option.value}
+                    >
+                        {option.name}
+                    </option>
                 ))}
             </select>
             <SelectArrows increment={decrement} decrement={increment} />
