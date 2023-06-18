@@ -48,11 +48,9 @@ export const handleNoteMouseEvents = (
     const handleMouseMove = (e: MouseEvent) => {
         const { row, col } = getNoteCoordsFromMousePosition(e);
         const pastWindowWidthRight = e.clientX >= window.innerWidth;
-        const pastWindowWidthLeft = e.clientX <= 0;
+        const pastWindowWidthLeft = e.clientX <= 1;
         const pastWindowHeightTop = e.clientY >= window.innerHeight;
         const pastWindowHeightBottom = e.clientY <= 0;
-        console.log(e.clientY, window.innerHeight)
-
         const widthScrollValue = pastWindowWidthRight
             ? SCROLL_VALUE
             : pastWindowWidthLeft
@@ -102,7 +100,7 @@ export const getNoteCoordsFromMousePosition = (
         Math.max(allNotes.length - Math.ceil(y / NOTE_HEIGHT), 0),
         allNotes.length - 1
     );
-    const col = Math.max(Math.ceil((x - PIANO_WIDTH) / (NOTE_WIDTH * 1)), 0);
+    const col = Math.max(Math.floor((x - PIANO_WIDTH) / (NOTE_WIDTH * 1)), 0);
     return { row, col };
 };
 
