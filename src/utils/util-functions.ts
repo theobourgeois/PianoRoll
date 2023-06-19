@@ -47,10 +47,10 @@ export const handleNoteMouseEvents = (
     }
     const handleMouseMove = (e: MouseEvent) => {
         const { row, col } = getNoteCoordsFromMousePosition(e);
-        const pastWindowWidthRight = e.clientX >= window.innerWidth;
+        const pastWindowWidthRight = e.clientX >= window.innerWidth - 1;
         const pastWindowWidthLeft = e.clientX <= 1;
-        const pastWindowHeightTop = e.clientY >= window.innerHeight;
-        const pastWindowHeightBottom = e.clientY <= 0;
+        const pastWindowHeightTop = e.clientY >= window.innerHeight - 1;
+        const pastWindowHeightBottom = e.clientY <= 1;
         const widthScrollValue = pastWindowWidthRight
             ? SCROLL_VALUE
             : pastWindowWidthLeft
@@ -100,7 +100,7 @@ export const getNoteCoordsFromMousePosition = (
         Math.max(allNotes.length - Math.ceil(y / NOTE_HEIGHT), 0),
         allNotes.length - 1
     );
-    const col = Math.max(Math.floor((x - PIANO_WIDTH) / (NOTE_WIDTH * 1)), 0);
+    const col = Math.max(Math.round((x - PIANO_WIDTH) / (NOTE_WIDTH * 1)), 0);
     return { row, col };
 };
 
@@ -176,23 +176,19 @@ export const getNearestBar = (notes: NoteData[]) => {
 export const midiToNoteData = (midiData) => {
     // @ts-ignore
     const noteData = [];
-
     for (const track of midiData.track) {
-        let currentTick = 0;
         let currentColumn = 0;
         const timeDivision = midiData.timeDivision;
         let ongoingNotes = {};
         // @ts-ignore
         track.event.forEach((event, index) => {
-            currentTick += event.deltaTime;
             currentColumn += Math.floor((event.deltaTime / timeDivision) * 8);
-
             if (event.type === 9 && event.data[1] !== 0) {
                 // @ts-ignore
                 ongoingNotes[event.data[0]] = {
                     start: currentColumn,
                     velocity: event.data[1],
-                }; // Start of the note, track velocity
+                };
             } else if (
                 event.type === 8 ||
                 (event.type === 9 && event.data[1] === 0)
@@ -220,3 +216,11 @@ export const midiToNoteData = (midiData) => {
     // @ts-ignore
     return noteData;
 };
+
+export const ellipsized = (str: string, maxLength: number) => {
+    if (maxLength < 0) return ''
+    if (str.length > maxLength) {
+        return str.slice(0, maxLength) + "..";
+    }
+    return str;
+}

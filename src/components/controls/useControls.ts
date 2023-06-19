@@ -217,9 +217,6 @@ export const useControls = () => {
             const controlCommand = e.metaKey || e.ctrlKey;
             const shiftKey = e.shiftKey && !controlCommand;
             switch (e.key) {
-                case "=":
-                case "-":
-                    if (controlCommand) return;
                 case "Delete":
                     handleDeleteNotes();
                     break;
@@ -262,7 +259,7 @@ export const useControls = () => {
                     break;
             }
 
-            e.preventDefault();
+            //e.preventDefault();
         };
 
         document.addEventListener("keydown", handleKeyDown);

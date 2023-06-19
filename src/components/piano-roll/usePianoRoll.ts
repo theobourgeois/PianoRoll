@@ -314,7 +314,7 @@ export const usePianoRoll = (
         const { row, col } = getNoteCoordsFromMousePosition(e);
         const note = notes.find((note: NoteData) => noteOnGrid(note, row, col));
         const resizing = note && col === note.column + note.units - 1;
-        const cursor = resizing ? "ew-resize" : note ? "grab" : "default";
+        const cursor = resizing ? "ew-resize" : note ? "all-scroll" : "default";
         document.body.style.cursor = cursor
 
     }
