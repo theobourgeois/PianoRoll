@@ -1,11 +1,5 @@
-import { useState, useRef, useEffect, forwardRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import ClickAwayListener from "react-click-away-listener";
-
-const dragImg = new Image(0, 0);
-dragImg.src =
-    "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
-// BS FIX
-// FIX THIS
 
 interface DraggableNumInputProps {
     value: number;
@@ -21,41 +15,40 @@ export const DraggableNumInput = ({
     min = 0,
 }: DraggableNumInputProps) => {
     const inputRef = useRef<HTMLInputElement>(null);
-    const dragTimeout = useRef<any>(null);
-    const [currY, setCurrY] = useState(0);
+    const valueRef = useRef<number>(value);
+    const draggableNumInputRef = useRef<HTMLDivElement>(null);
     const [editing, setEditing] = useState(false);
 
-    function handleDragStart(e: React.DragEvent<HTMLDivElement>) {
-        e.dataTransfer.setDragImage(dragImg, 0, 0);
-    }
+    useEffect(() => {
+        valueRef.current = value;
+    }, [value]);
 
-    function handleDrag(e: React.DragEvent<HTMLDivElement>) {
-        if (dragTimeout.current) {
-            clearTimeout(dragTimeout.current);
-        }
-        dragTimeout.current = setTimeout(() => {
-            setCurrY(e.pageY);
-            let diff = currY - e.pageY;
-            if (e.pageY === 0) {
-                diff = 5;
-            }
+    const handleMouseDown = (e: React.MouseEvent) => {
+        const threshold = 5;
+        let currThreshold = 0;
+        let prevY = e.pageY;
+        const handleMouseMove = (e: MouseEvent) => {
+            let diff = prevY - e.pageY;
+            console.log(diff);
+            if (diff === 0) currThreshold++;
+            else currThreshold = 0;
+            if (currThreshold > threshold) diff = 1;
+            const newValue = Math.max(
+                Math.min(valueRef.current + diff, max),
+                min
+            );
+            onChange(newValue);
+            prevY = e.pageY;
+        };
 
-            // If mouse exits downwards
-            if (e.clientY >= window.innerHeight) {
-                diff = -5;
-            }
+        const handleMouseUp = () => {
+            window.removeEventListener("mousemove", handleMouseMove);
+            window.removeEventListener("mouseup", handleMouseUp);
+        };
 
-            if (
-                diff > 10 ||
-                diff < -10 ||
-                value + diff < min ||
-                value + diff > max
-            )
-                return;
-            onChange(value + diff);
-        }, 4);
-        // delay drag input by 4ms because too many calls
-    }
+        window.addEventListener("mousemove", handleMouseMove);
+        window.addEventListener("mouseup", handleMouseUp);
+    };
 
     function handleEnter(e: React.KeyboardEvent<HTMLInputElement>) {
         if (inputRef.current && inputRef.current.value === "") onChange(min);
@@ -66,14 +59,14 @@ export const DraggableNumInput = ({
         setEditing(true);
     }
 
-    function handleChangeInput(e: React.ChangeEvent<HTMLInputElement>) {
+    const handleChangeInput = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = !isNaN(Number(e.target.value))
             ? parseInt(e.target.value)
             : "";
         if (value > max) return onChange(max);
         if (value < min) return onChange(min);
         onChange(Number(value));
-    }
+    };
 
     useEffect(() => {
         if (editing && inputRef.current) {
@@ -82,15 +75,47 @@ export const DraggableNumInput = ({
         }
     }, [editing]);
 
+    useEffect(() => {
+        if (draggableNumInputRef.current) {
+            const deltaYThreshold = 30;
+            const preventScroll = (e: WheelEvent) => {
+                e.preventDefault();
+                let threshold = 1;
+                if (e.deltaY > deltaYThreshold || e.deltaY < -deltaYThreshold)
+                    threshold = 5;
+                let newValue =
+                    -Math.sign(e.deltaY) * threshold + valueRef.current;
+                newValue = Math.max(Math.min(newValue, max), min);
+                onChange(newValue);
+            };
+
+            draggableNumInputRef.current.addEventListener(
+                "wheel",
+                preventScroll,
+                {
+                    passive: false,
+                }
+            );
+            return () => {
+                if (draggableNumInputRef.current)
+                    draggableNumInputRef.current.removeEventListener(
+                        "wheel",
+                        preventScroll
+                    );
+            };
+        }
+    }, []);
+
     return (
         <ClickAwayListener onClickAway={() => setEditing(false)}>
-            <div onKeyDown={handleEnter}>
+            <div
+                ref={draggableNumInputRef}
+                onKeyDown={handleEnter}
+                onMouseDown={handleMouseDown}
+            >
                 <div
                     style={{ display: editing ? "none" : "flex" }}
-                    draggable
                     onDoubleClick={handleDoubleClick}
-                    onDragStart={handleDragStart}
-                    onDrag={handleDrag}
                     className="flex justify-center items-center w-12 select-none cursor-ns-resize border bg-slate-100 py-1 px-2 rounded-md"
                 >
                     <p>{value}</p>
@@ -100,7 +125,6 @@ export const DraggableNumInput = ({
                     onClick={handleDoubleClick}
                     className="w-12"
                     style={{ display: editing ? "block" : "none" }}
-                    max="1000"
                     type="number"
                     value={value}
                     onChange={handleChangeInput}

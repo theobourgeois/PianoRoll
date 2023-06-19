@@ -10,6 +10,7 @@ import {
 import { NotesContext, ProgressContext } from "../../utils/context";
 import { allNotes, PIANO_ROLL_HEIGHT } from "../../utils/globals";
 import { NoteData } from "../../utils/types";
+import { ellipsized } from "../../utils/util-functions";
 import { ProgressSelector } from "../progress-selector/ProgressSelector";
 
 interface GridProps {
@@ -50,7 +51,19 @@ export const Grid = ({
         context.strokeRect(x, y, width, height);
         context.fillStyle = "black";
         context.font = "16px sans-serif";
-        context.fillText(note.note, x + 5, y + 21);
+
+        let maxLength = 3;
+        switch (note.units) {
+            case 1:
+                maxLength = -1;
+                break;
+            case 2:
+                maxLength = 0;
+                break;
+            case 3:
+                maxLength = 1;
+        }
+        context.fillText(ellipsized(note.note, maxLength), x + 2, y + 21);
     };
 
     const handleRightClick = (e: React.MouseEvent) => {
@@ -67,6 +80,7 @@ export const Grid = ({
         handleResize();
         window.addEventListener("scroll", handleResize);
         window.addEventListener("resize", handleResize);
+        window.scrollTo(0, 1000); // scroll to c5
 
         return () => {
             window.removeEventListener("scroll", handleResize);
@@ -90,7 +104,6 @@ export const Grid = ({
     return (
         <>
             <ProgressSelector />
-
             <div
                 onContextMenu={handleRightClick}
                 ref={gridRef}
