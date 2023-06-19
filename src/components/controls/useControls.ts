@@ -223,20 +223,25 @@ export const useControls = () => {
                 case " ":
                     if (playingRef.current) handleStop();
                     else handlePlay();
+                    e.preventDefault();
                     break;
                 case "ArrowLeft":
+                    e.preventDefault();
                     moveNotes("left");
                     break;
                 case "ArrowRight":
+                    e.preventDefault();
                     moveNotes("right");
                     break;
                 case "ArrowUp":
                     if (controlCommand) shiftOctave(true);
                     else moveNotes("top");
+                    e.preventDefault();
                     break;
                 case "ArrowDown":
                     if (controlCommand) shiftOctave();
                     else moveNotes("bottom");
+                    e.preventDefault();
                     break;
                 case "a":
                     if (controlCommand) handleSelectAll();
