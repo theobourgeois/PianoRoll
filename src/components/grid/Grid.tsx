@@ -80,6 +80,7 @@ export const Grid = ({
         handleResize();
         window.addEventListener("scroll", handleResize);
         window.addEventListener("resize", handleResize);
+        window.scrollTo(0, 1000); // scroll to c5
 
         return () => {
             window.removeEventListener("scroll", handleResize);
