@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "audiobuffer-to-wav": "^1.0.0",
     "html2canvas": "^1.4.1",
     "midi-parser-js": "^4.0.4",
     "react": "^18.2.0",

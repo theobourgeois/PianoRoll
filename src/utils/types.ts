@@ -21,3 +21,5 @@ export type InstrumentOptions = {
     name: string;
     value: InstrumentName
 }
+
+export type FileFormat = 'mp3' | 'wav';

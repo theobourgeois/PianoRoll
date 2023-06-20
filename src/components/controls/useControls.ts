@@ -7,15 +7,19 @@ import {
     ProgressContext,
     PlayingContext,
     SnapValueContext,
+    InstrumentContext,
 } from "../../utils/context";
-import { allNotes, idGen } from "../../utils/globals";
-import { NoteData, Direction } from "../../utils/types";
+import { allNotes, audioContext, idGen, instrumentPlayer, setInstrumentPlayer } from "../../utils/globals";
+import { NoteData, Direction, FileFormat } from "../../utils/types";
 import {
     midiToNoteData,
     getNearestBar,
     playNote,
     timer,
 } from "../../utils/util-functions";
+import toWav from 'audiobuffer-to-wav'
+import Soundfont from "soundfont-player";
+
 
 export const useControls = () => {
     const { notes, setNotes } = useContext(NotesContext);
@@ -23,6 +27,7 @@ export const useControls = () => {
     const { progress, setProgress } = useContext(ProgressContext);
     const { playing, setPlaying } = useContext(PlayingContext);
     const { snapValue, setSnapValue } = useContext(SnapValueContext);
+    const { instrument } = useContext(InstrumentContext);
     const tempProgressRef = useRef<number>(0);
 
     const notesRef = useRef<NoteData[]>(notes);
@@ -80,6 +85,8 @@ export const useControls = () => {
         }
         playPianoRoll();
     };
+
+
 
     useEffect(() => {
         progressRef.current = progress;
@@ -324,6 +331,53 @@ export const useControls = () => {
     //     setFuture(future.slice(1));
     // };
 
+    const playPianoRollOffline = async (context: OfflineAudioContext) => {
+        if (notesRef.current.length === 0) return;
+        let farthestCol = getNearestBar(notesRef.current);
+        let unitTimeSec = 60 / (BPMRef.current * 8);  // Switched to seconds
+        let currentTime = 0;
+
+        for (let i = 0; i < farthestCol; i++) {
+            unitTimeSec = 60 / (BPMRef.current * 8);
+            const notesToPlay = notesRef.current.filter(
+                (note) => note.column === i
+            );
+            for (const note of notesToPlay) {
+                playNoteOffline(note.note, currentTime, note.units * unitTimeSec);
+            }
+            currentTime += unitTimeSec;
+        }
+    };
+
+
+
+    const exportPianoRoll = async () => {
+        const lengthOfSong = getNearestBar(notesRef.current) * (60 / (BPMRef.current * 8));
+        const offlineContext = new OfflineAudioContext({
+            numberOfChannels: 2,
+            length: 44100 * lengthOfSong,
+            sampleRate: 44100,
+        });
+        // @ts-ignore
+        setInstrumentPlayer(await Soundfont.instrument(offlineContext, instrument));
+        await playPianoRollOffline(offlineContext);
+
+        offlineContext.startRendering().then(async (buffer) => {
+            const wav = toWav(buffer);
+            const blob = new window.Blob([new DataView(wav)], {
+                type: "audio/wav",
+            });
+
+            const url = window.URL.createObjectURL(blob);
+            const anchor = document.createElement("a");
+            anchor.download = "music.wav";
+            anchor.href = url;
+            anchor.click();
+            setInstrumentPlayer(await Soundfont.instrument(audioContext, instrument));
+        });
+
+    }
+
     return {
         togglePlay,
         playing,
@@ -333,5 +387,15 @@ export const useControls = () => {
         handleSnapValueChange,
         snapValue,
         fileInputRef,
+        exportPianoRoll
     };
+};
+
+const playNoteOffline = (note: string, time: number, ms: number) => {
+    if (instrumentPlayer) {
+        instrumentPlayer.play(note, time, {
+            duration: ms,
+            gain: 5,
+        });
+    }
 };

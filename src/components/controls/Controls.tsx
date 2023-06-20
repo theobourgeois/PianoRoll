@@ -6,7 +6,7 @@ import {
 } from "react-icons/tb";
 import { MdPiano } from "react-icons/md";
 import { BiMagnet } from "react-icons/bi";
-import { CgImport } from "react-icons/cg";
+import { CgImport, CgSoftwareDownload } from "react-icons/cg";
 import { InstrumentOptions } from "./InstrumentOptions";
 import { useControls } from "./useControls";
 
@@ -20,6 +20,7 @@ export const Controls = (): JSX.Element => {
         handleSnapValueChange,
         snapValue,
         fileInputRef,
+        exportPianoRoll,
     } = useControls();
 
     return (
@@ -85,10 +86,18 @@ export const Controls = (): JSX.Element => {
                         Import MIDI file
                     </label>
                     <input
-                        className="absolute opacity-0"
+                        className="absolute opacity-0 w-full"
                         ref={fileInputRef}
                         type="file"
                     />
+                </div>
+                <div className="flex items-center">
+                    <div
+                        onClick={exportPianoRoll}
+                        className="bg-blue-500 mx-2 w-6 h-6 flex items-center justify-center rounded-md"
+                    >
+                        <CgSoftwareDownload color="white" className="w-6 h-6" />
+                    </div>
                 </div>
             </div>
         </div>

@@ -224,3 +224,4 @@ export const ellipsized = (str: string, maxLength: number) => {
     }
     return str;
 }
+
