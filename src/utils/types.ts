@@ -22,4 +22,8 @@ export type InstrumentOptions = {
     value: InstrumentName
 }
 
-export type FileFormat = 'mp3' | 'wav';
+export enum FileFormat {
+    //MP3 = "mp3",
+    WAV = "wav",
+    //MIDI = "midi",
+}

@@ -19,7 +19,7 @@ import {
 } from "../../utils/util-functions";
 import toWav from 'audiobuffer-to-wav'
 import Soundfont from "soundfont-player";
-
+import lamejs from 'lamejs';
 
 export const useControls = () => {
     const { notes, setNotes } = useContext(NotesContext);
@@ -351,7 +351,7 @@ export const useControls = () => {
 
 
 
-    const exportPianoRoll = async () => {
+    const exportPianoRoll = async (format: FileFormat, filename: string) => {
         const lengthOfSong = getNearestBar(notesRef.current) * (60 / (BPMRef.current * 8));
         const offlineContext = new OfflineAudioContext({
             numberOfChannels: 2,
@@ -363,16 +363,22 @@ export const useControls = () => {
         await playPianoRollOffline(offlineContext);
 
         offlineContext.startRendering().then(async (buffer) => {
-            const wav = toWav(buffer);
-            const blob = new window.Blob([new DataView(wav)], {
-                type: "audio/wav",
-            });
+            switch (format) {
+                case FileFormat.WAV: {
+                    const wav = toWav(buffer);
+                    const blob = new window.Blob([new DataView(wav)], {
+                        type: "audio/wav",
+                    });
 
-            const url = window.URL.createObjectURL(blob);
-            const anchor = document.createElement("a");
-            anchor.download = "music.wav";
-            anchor.href = url;
-            anchor.click();
+                    const url = window.URL.createObjectURL(blob);
+                    const anchor = document.createElement("a");
+                    anchor.download = filename + "." + format;
+                    anchor.href = url;
+                    anchor.click();
+                    break;
+                }
+            }
+
             setInstrumentPlayer(await Soundfont.instrument(audioContext, instrument));
         });
 
