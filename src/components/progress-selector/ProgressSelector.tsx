@@ -1,5 +1,5 @@
 import { useContext } from "react";
-import { NOTE_WIDTH } from "../../utils/constants";
+import { HEADER_HEIGHT, NOTE_WIDTH } from "../../utils/constants";
 import { ProgressContext, SnapValueContext } from "../../utils/context";
 import { PIANO_ROLL_HEIGHT } from "../../utils/globals";
 import {
@@ -27,7 +27,7 @@ export const ProgressSelector = () => {
                 style={{
                     left: progress * NOTE_WIDTH,
                     transition: "100ms left",
-                    top: 0,
+                    top: HEADER_HEIGHT,
                     height: PIANO_ROLL_HEIGHT + "px",
                 }}
             >
@@ -47,6 +47,7 @@ export const ProgressSelector = () => {
                     left: progress * NOTE_WIDTH - 8,
                     transition: "100ms left",
                     top: 0,
+                    transform: `translateY(${HEADER_HEIGHT}px)`,
                     height: PIANO_ROLL_HEIGHT + "px",
                 }}
             >
@@ -56,6 +57,7 @@ export const ProgressSelector = () => {
             <div
                 onMouseDown={handleMouseDown}
                 className="fixed h-4 w-screen bg-slate-400 z-30 overflow-hidden"
+                style={{ top: HEADER_HEIGHT }}
             >
                 <div className="relative">
                     <div className="w-16 overflow-hidden inline-block"></div>
