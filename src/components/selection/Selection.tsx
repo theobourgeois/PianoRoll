@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
+import { PianoRollRefContext, GridRefContext } from "../../utils/context";
 import { Position } from "../../utils/types";
 import { getMousePos } from "../../utils/util-functions";
 
@@ -8,15 +9,17 @@ export const Selection = () => {
         height: number;
     }>({ width: 0, height: 0 });
     const [position, setPosition] = useState<Position>({ x: 0, y: 0 });
+    const pianoRollRef = useContext(PianoRollRefContext);
+    const gridRef = useContext(GridRefContext);
 
     useEffect(() => {
         const handleResize = (e: MouseEvent) => {
             if (!(e.metaKey || e.ctrlKey)) return;
 
-            let startPos = getMousePos(e);
+            let startPos = { x: e.clientX, y: e.clientY };
 
             const mouseMove = (e: MouseEvent) => {
-                let currentPos = getMousePos(e);
+                let currentPos = { x: e.clientX, y: e.clientY };
                 let width = Math.abs(currentPos.x - startPos.x);
                 let height = Math.abs(currentPos.y - startPos.y);
 

@@ -27,7 +27,7 @@ export const DownloadFileDialog = ({
                 opacity: open ? "1" : "0",
                 transition: "height 300ms",
             }}
-            className="absolute overflow-hidden flex flex-col rounded-md justify-start bg-slate-200 p-4 w-44 top-14 right-0"
+            className="absolute overflow-hidden flex flex-col rounded-md justify-start bg-slate-200 z-[101] p-4 w-44 top-10 left-0"
         >
             <label htmlFor="filename">File Name</label>
             <input

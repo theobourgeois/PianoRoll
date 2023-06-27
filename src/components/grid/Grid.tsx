@@ -7,10 +7,15 @@ import {
     PIANO_WIDTH,
     SELECTED_NOTE_COLOR,
 } from "../../utils/constants";
-import { NotesContext, ProgressContext } from "../../utils/context";
+import {
+    GridRefContext,
+    NotesContext,
+    PianoRollRefContext,
+    ProgressContext,
+} from "../../utils/context";
 import { allNotes, PIANO_ROLL_HEIGHT } from "../../utils/globals";
 import { NoteData } from "../../utils/types";
-import { ellipsized } from "../../utils/util-functions";
+import { ellipsized, getNearestBar } from "../../utils/util-functions";
 import { ProgressSelector } from "../progress-selector/ProgressSelector";
 
 interface GridProps {
@@ -22,7 +27,6 @@ export const Grid = ({
     handleMouseDownOnGrid,
     handleMouseMoveOnGrid,
 }: GridProps): JSX.Element => {
-    const gridRef = useRef<HTMLDivElement>(null);
     const canvasRef = useRef<HTMLCanvasElement>(null);
 
     const [context, setContext] = useState<CanvasRenderingContext2D | null>(
@@ -31,7 +35,9 @@ export const Grid = ({
     const [gridWidth, setGridWidth] = useState<number>(window.innerWidth);
 
     const { notes } = useContext(NotesContext);
-
+    const gridRef = useContext(GridRefContext);
+    const pianoRollRef = useContext(PianoRollRefContext);
+    const gridImgRef = useRef<HTMLDivElement>(null);
     useEffect(() => {
         const canvas = canvasRef.current as HTMLCanvasElement;
         const ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
@@ -70,60 +76,67 @@ export const Grid = ({
         e.preventDefault();
         e.stopPropagation();
     };
+
     useEffect(() => {
-        const handleResize = () => {
-            if (!canvasRef.current) return;
-            const gridWidth = window.scrollX + window.innerWidth;
-            setGridWidth(gridWidth);
-        };
-
-        handleResize();
-        window.addEventListener("scroll", handleResize);
-        window.addEventListener("resize", handleResize);
-        window.scrollTo(0, 1000); // scroll to c5
-
-        return () => {
-            window.removeEventListener("scroll", handleResize);
-            window.removeEventListener("resize", handleResize);
-        };
+        pianoRollRef.current?.scrollTo(0, 1000); // scroll to c5
     }, []);
 
-    const drawNotes = () => {
-        if (!context) return;
-        context.clearRect(0, 0, gridWidth, PIANO_ROLL_HEIGHT);
-        for (let i = 0; i < notes.length; i++) {
-            const note = notes[i];
-            placeNote(note);
-        }
-    };
-
     useEffect(() => {
-        drawNotes();
+        if (!context) return;
+
+        // Calculate the width even if no notes are present
+        const farthestCol =
+            notes.notes.length > 0 ? getNearestBar(notes.notes) : 0;
+        const gridWidth = (farthestCol + 1) * NOTE_WIDTH + 3000;
+
+        // Set gridImgRef current's style minWidth if gridImgRef current is not null
+        if (gridImgRef.current) {
+            gridImgRef.current.style.minWidth = gridWidth + "px";
+        }
+        //setGridWidth(gridWidth);
+
+        context.clearRect(0, 0, gridWidth, PIANO_ROLL_HEIGHT);
+
+        // Draw the notes only if notes are present
+        if (notes.notes.length > 0) {
+            for (let i = 0; i < notes.notes.length; i++) {
+                const note = notes.notes[i];
+                placeNote(note);
+            }
+        }
     }, [notes, context, gridWidth]);
 
     return (
         <>
             <ProgressSelector />
             <div
+                className="w-full flex-shrink-0 overflow-x-auto overflow-y-hidden relative"
                 onContextMenu={handleRightClick}
                 ref={gridRef}
-                className="bg-slate-700 z-10 absolute w-full h-full origin-top-left"
                 style={{
-                    backgroundRepeat: "repeat",
-                    backgroundImage: 'url("assets/grid-01.svg")',
-                    left: PIANO_WIDTH,
                     height: PIANO_ROLL_HEIGHT + "px",
-                    width: gridWidth + "px",
+                    transform: `translateX(-12px)`,
                 }}
             >
-                <canvas
-                    className=" absolute"
-                    onMouseDown={handleMouseDownOnGrid}
-                    onMouseMove={handleMouseMoveOnGrid}
-                    height={PIANO_ROLL_HEIGHT}
-                    width={gridWidth}
-                    ref={canvasRef}
-                ></canvas>
+                <div
+                    className=""
+                    ref={gridImgRef}
+                    style={{
+                        height: PIANO_ROLL_HEIGHT + "px",
+                        //minWidth: gridWidth + 3000 + "px",
+                        backgroundRepeat: "repeat",
+                        backgroundImage: 'url("assets/grid-01.svg")',
+                    }}
+                >
+                    <canvas
+                        className="absolute"
+                        onMouseDown={handleMouseDownOnGrid}
+                        onMouseMove={handleMouseMoveOnGrid}
+                        height={PIANO_ROLL_HEIGHT}
+                        width={gridWidth}
+                        ref={canvasRef}
+                    ></canvas>
+                </div>
             </div>
         </>
     );

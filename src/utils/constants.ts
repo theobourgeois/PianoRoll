@@ -29,6 +29,9 @@ export const NOTE_STROKE_COLOR = "#1e40af" as const;
 export const SELECTED_NOTE_COLOR = "#bfdbfe" as const;
 export const BAR_LENGTH = 32 as const;
 export const SCROLL_VALUE = 20 as const;
+export const HEADER_HEIGHT = 50 as const;
+export const SIDEBAR_WIDTH = 200 as const;
+export const LAYER_HEIGHT = 80 as const;
 
 export const INSTRUMENT_OPTIONS: InstrumentOptions[] = [
     {

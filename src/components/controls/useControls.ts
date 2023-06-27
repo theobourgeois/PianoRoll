@@ -8,29 +8,34 @@ import {
     PlayingContext,
     SnapValueContext,
     InstrumentContext,
+    LayersContext,
 } from "../../utils/context";
 import { allNotes, audioContext, idGen, instrumentPlayer, setInstrumentPlayer } from "../../utils/globals";
-import { NoteData, Direction, FileFormat } from "../../utils/types";
+import { NoteData, Direction, FileFormat, Layer, PlayingType } from "../../utils/types";
 import {
     midiToNoteData,
     getNearestBar,
     playNote,
     timer,
+    getNewID,
 } from "../../utils/util-functions";
 import toWav from 'audiobuffer-to-wav'
 import Soundfont from "soundfont-player";
-import lamejs from 'lamejs';
 
-export const useControls = () => {
+export const useControls = (playingType: PlayingType, setPlayingType: (type: PlayingType) => void) => {
     const { notes, setNotes } = useContext(NotesContext);
     const { BPM, setBPM } = useContext(BPMContext);
     const { progress, setProgress } = useContext(ProgressContext);
     const { playing, setPlaying } = useContext(PlayingContext);
     const { snapValue, setSnapValue } = useContext(SnapValueContext);
     const { instrument } = useContext(InstrumentContext);
-    const tempProgressRef = useRef<number>(0);
+    const { layers } = useContext(LayersContext);
 
-    const notesRef = useRef<NoteData[]>(notes);
+
+    const tempProgressRef = useRef<number>(0);
+    const layersRef = useRef<Layer[]>(layers);
+
+    const selectedLayerRef = useRef<Layer>(notes);
     const playingRef = useRef<boolean>(false);
     const progressRef = useRef<number>(progress);
     const BPMRef = useRef<number>(BPM);
@@ -38,13 +43,17 @@ export const useControls = () => {
 
     useEffect(() => {
         MidiParser.parse(fileInputRef.current, (obj: any) => {
-            setNotes(midiToNoteData(obj));
+            setNotes({ ...notes, notes: midiToNoteData(obj) });
         });
     }, []);
 
     useEffect(() => {
-        notesRef.current = notes;
+        selectedLayerRef.current = notes;
     }, [notes]);
+
+    useEffect(() => {
+        layersRef.current = layers;
+    }, [layers]);
 
     const handlePlay = () => {
         tempProgressRef.current = progressRef.current;
@@ -60,20 +69,20 @@ export const useControls = () => {
         playingRef.current = false;
     };
 
-    const playPianoRoll = async () => {
-        if (notesRef.current.length === 0) return;
-        let farthestCol = getNearestBar(notesRef.current);
+    const playTrack = async () => {
+        if (selectedLayerRef.current.notes.length === 0) return;
+        let farthestCol = getNearestBar(selectedLayerRef.current.notes);
         let unitTimeMs = (60 / (BPMRef.current * 8)) * 1000;
         for (let i = tempProgressRef.current; i < farthestCol; i++) {
             if (!playingRef.current) return;
             unitTimeMs = (60 / (BPMRef.current * 8)) * 1000;
-            const notesToPlay = notesRef.current.filter(
+            const notesToPlay = selectedLayerRef.current.notes.filter(
                 (note) => note.column === i
             );
             if (notesToPlay) {
                 for (const note of notesToPlay) {
                     const timeMS = note.units * unitTimeMs;
-                    playNote(note.note, timeMS);
+                    playNote(selectedLayerRef.current.instrument.player, note.note, timeMS);
                 }
             }
             setProgress(i);
@@ -83,35 +92,68 @@ export const useControls = () => {
             progressRef.current = 0;
             setProgress(0);
         }
-        playPianoRoll();
+        playTrack();
     };
 
+    const playSong = async () => {
+        let farthestCol = Math.max(...layersRef.current.map(layer => getNearestBar(layer.notes)));
+        if (farthestCol === -Infinity) return; // If there are no notes
+        let unitTimeMs = (60 / (BPMRef.current * 8)) * 1000;
+        for (let i = tempProgressRef.current; i < farthestCol; i++) {
+            if (!playingRef.current) return;
+            unitTimeMs = (60 / (BPMRef.current * 8)) * 1000;
+            for (const layer of layersRef.current) {
+                const notesToPlay = layer.notes.filter(note => note.column === i);
+                for (const note of notesToPlay) {
+                    const timeMS = note.units * unitTimeMs;
+                    playNote(layer.instrument.player, note.note, timeMS);
+                }
+            }
+            setProgress(i);
+            await timer(unitTimeMs);
+        }
+        if (progressRef.current > 0) {
+            progressRef.current = 0;
+            setProgress(0);
+        }
+        playSong();
+    };
 
+    const playPianoRoll = () => {
+        switch (playingType) {
+            case PlayingType.TRACK:
+                return playTrack();
+            case PlayingType.SONG:
+                return playSong();
+        }
+    }
 
     useEffect(() => {
         progressRef.current = progress;
     }, [progress]);
 
     const handleSelectAll = () => {
-        setNotes((prevNotes: NoteData[]) => {
-            return prevNotes.map((note) => ({
+        setNotes((prevNotes: Layer) => ({
+            ...notes,
+            notes: prevNotes.notes.map((note) => ({
                 ...note,
                 selected: true,
-            }));
-        });
+            }))
+        }));
     };
 
     const handleDeselectAll = () => {
-        setNotes((prevNotes: NoteData[]) => {
-            return prevNotes.map((note) => ({
+        setNotes((prevNotes: Layer) => ({
+            ...notes,
+            notes: prevNotes.notes.map((note) => ({
                 ...note,
                 selected: false,
-            }));
-        });
+            }))
+        }));
     };
 
     const moveNotes = (direction: Direction, amplitude = 1) => {
-        const noSelectedNote = notesRef.current.every(
+        const noSelectedNote = selectedLayerRef.current.notes.every(
             (note: NoteData) => !note.selected
         );
         let colOffset = 0;
@@ -131,12 +173,13 @@ export const useControls = () => {
                 break;
         }
 
-        setNotes((prevNotes: NoteData[]) => {
-            return prevNotes.map((note) => {
-                const newCol =
+        setNotes((prevNotes: Layer) => ({
+            ...notes,
+            notes: prevNotes.notes.map((note) => {
+                const newCol = Math.max(
                     note.selected || noSelectedNote
                         ? note.column + colOffset
-                        : note.column;
+                        : note.column, 0);
                 const newRow =
                     note.selected || noSelectedNote
                         ? note.row + rowOffset
@@ -152,43 +195,45 @@ export const useControls = () => {
                     row: newRow,
                     note: newNote,
                 };
-            });
-        });
+            })
+        }));
     };
 
     const shiftOctave = (up = false) => {
         const offset = up ? 12 : -12;
-        const noSelectedNote = notesRef.current.every(
+        const noSelectedNote = selectedLayerRef.current.notes.every(
             (note: NoteData) => !note.selected
         );
         setNotes((prevNotes: NoteData[]) => {
-            return prevNotes.map((note) => {
-                const newNote =
-                    note.selected || noSelectedNote
-                        ? allNotes[allNotes.length - 1 - (note.row + offset)]
-                        : note.note;
-                const newRow =
-                    note.selected || noSelectedNote
-                        ? note.row + offset
-                        : note.row;
+            return {
+                ...notes, notes: prevNotes.map((note) => {
+                    const newNote =
+                        note.selected || noSelectedNote
+                            ? allNotes[allNotes.length - 1 - (note.row + offset)]
+                            : note.note;
+                    const newRow =
+                        note.selected || noSelectedNote
+                            ? note.row + offset
+                            : note.row;
 
-                return {
-                    ...note,
-                    row: newRow,
-                    note: newNote,
-                };
-            });
+                    return {
+                        ...note,
+                        row: newRow,
+                        note: newNote,
+                    };
+                })
+            }
         });
     };
 
     const handleDuplicateNotes = () => {
-        const newNotes = [...notesRef.current];
-        const noSelectedNote = notesRef.current.every(
+        const newNotes = [...selectedLayerRef.current.notes];
+        const noSelectedNote = selectedLayerRef.current.notes.every(
             (note: NoteData) => !note.selected
         );
-        const selectedNotes = notesRef.current.filter((note) => note.selected);
+        const selectedNotes = selectedLayerRef.current.notes.filter((note) => note.selected);
 
-        for (const note of notesRef.current) {
+        for (const note of selectedLayerRef.current.notes) {
             if (!note.selected && !noSelectedNote) continue;
 
             const newNote = {
@@ -196,27 +241,27 @@ export const useControls = () => {
                 column:
                     note.column +
                     getNearestBar(
-                        noSelectedNote ? notesRef.current : selectedNotes
+                        noSelectedNote ? selectedLayerRef.current.notes : selectedNotes
                     ),
-                id: idGen.next().value as number,
+                id: getNewID(),
             };
             newNotes.push(newNote);
         }
-        setNotes(newNotes);
+        setNotes({ ...notes, notes: newNotes });
     };
 
     const handleDeleteNotes = () => {
-        const noSelectedNote = notesRef.current.every(
+        const noSelectedNote = selectedLayerRef.current.notes.every(
             (note: NoteData) => !note.selected
         );
-        if (noSelectedNote) return setNotes([]);
-        const newNotes = [...notesRef.current];
-        for (const note of notesRef.current) {
+        if (noSelectedNote) return setNotes({ ...notes, notes: [] });
+        const newNotes = [...selectedLayerRef.current.notes];
+        for (const note of selectedLayerRef.current.notes) {
             if (note.selected) {
                 newNotes.splice(newNotes.indexOf(note), 1);
             }
         }
-        setNotes(newNotes);
+        setNotes({ ...notes, notes: newNotes });
     };
 
     useEffect(() => {
@@ -276,10 +321,10 @@ export const useControls = () => {
 
         document.addEventListener("keydown", handleKeyDown);
         const storedNotes = localStorage.getItem("notes");
-        if (storedNotes) setNotes(JSON.parse(storedNotes));
+        if (storedNotes) setNotes({ ...notes, notes: JSON.parse(storedNotes) });
 
         const saveNotes = () => {
-            localStorage.setItem("notes", JSON.stringify(notesRef.current));
+            localStorage.setItem("notes", JSON.stringify(selectedLayerRef.current.notes));
         };
 
         const intervalId = setInterval(saveNotes, DEFAULT_SAVE_TIME);
@@ -305,41 +350,15 @@ export const useControls = () => {
         BPMRef.current = value;
     };
 
-    // const [past, setPast] = useState<NoteData[][]>([]);
-    // const [future, setFuture] = useState<NoteData[][]>([]);
-
-    // useEffect(() => {
-    //     if (past.length === 0 && notes.length === 0) return;
-
-    //     if (notesRef.current.length != notes.length) {
-    //         setPast((past) => [notes, ...past]);
-    //     }
-    //     notesRef.current = notes;
-    // }, [notes]);
-
-    // const undo = () => {
-    //     if (!past.length) return;
-    //     setFuture([notesRef.current, ...future]);
-    //     setNotes(past[0]);
-    //     setPast(past.slice(1));
-    // };
-
-    // const redo = () => {
-    //     if (!future.length) return;
-    //     setPast([notesRef.current, ...past]);
-    //     setNotes(future[0]);
-    //     setFuture(future.slice(1));
-    // };
-
     const playPianoRollOffline = async (context: OfflineAudioContext) => {
-        if (notesRef.current.length === 0) return;
-        let farthestCol = getNearestBar(notesRef.current);
+        if (selectedLayerRef.current.notes.length === 0) return;
+        let farthestCol = getNearestBar(selectedLayerRef.current.notes);
         let unitTimeSec = 60 / (BPMRef.current * 8);  // Switched to seconds
         let currentTime = 0;
 
         for (let i = 0; i < farthestCol; i++) {
             unitTimeSec = 60 / (BPMRef.current * 8);
-            const notesToPlay = notesRef.current.filter(
+            const notesToPlay = selectedLayerRef.current.notes.filter(
                 (note) => note.column === i
             );
             for (const note of notesToPlay) {
@@ -352,7 +371,7 @@ export const useControls = () => {
 
 
     const exportPianoRoll = async (format: FileFormat, filename: string) => {
-        const lengthOfSong = getNearestBar(notesRef.current) * (60 / (BPMRef.current * 8));
+        const lengthOfSong = getNearestBar(selectedLayerRef.current.notes) * (60 / (BPMRef.current * 8));
         const offlineContext = new OfflineAudioContext({
             numberOfChannels: 2,
             length: 44100 * lengthOfSong,
@@ -386,12 +405,9 @@ export const useControls = () => {
 
     return {
         togglePlay,
-        playing,
         handleStop,
-        BPM,
         handleBPMChange,
         handleSnapValueChange,
-        snapValue,
         fileInputRef,
         exportPianoRoll
     };

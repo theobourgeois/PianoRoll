@@ -1,4 +1,6 @@
+import { useContext } from "react";
 import { NOTE_HEIGHT, PIANO_WIDTH } from "../../utils/constants";
+import { NotesContext } from "../../utils/context";
 import { playNote } from "../../utils/util-functions";
 
 const getKeyColour = (key: string) => {
@@ -11,8 +13,12 @@ interface PianoNoteProps {
 }
 
 export const PianoNote = ({ note }: PianoNoteProps) => {
+    const { notes } = useContext(NotesContext);
     return (
-        <div className="bg-white" onClick={() => playNote(note)}>
+        <div
+            className="bg-white"
+            onClick={() => playNote(notes.instrument.player, note)}
+        >
             <div
                 style={{
                     width:

@@ -1,6 +1,11 @@
 import { useContext } from "react";
-import { NOTE_WIDTH } from "../../utils/constants";
-import { ProgressContext, SnapValueContext } from "../../utils/context";
+import { HEADER_HEIGHT, NOTE_WIDTH } from "../../utils/constants";
+import {
+    GridRefContext,
+    PianoRollRefContext,
+    ProgressContext,
+    SnapValueContext,
+} from "../../utils/context";
 import { PIANO_ROLL_HEIGHT } from "../../utils/globals";
 import {
     getNoteCoordsFromMousePosition,
@@ -11,17 +16,23 @@ import {
 export const ProgressSelector = () => {
     const { progress, setProgress } = useContext(ProgressContext);
     const { snapValue } = useContext(SnapValueContext);
+    const pianoRollRef = useContext(PianoRollRefContext);
+    const gridRef = useContext(GridRefContext);
 
     const handleMouseDown = (e: React.MouseEvent) => {
-        const { col } = getNoteCoordsFromMousePosition(e);
+        const { col } = getNoteCoordsFromMousePosition(e, {
+            pianoRollRef,
+            gridRef,
+        });
         setProgress(snapColumn(col, snapValue));
-        handleNoteMouseEvents((_, col) => {
+        handleNoteMouseEvents({ pianoRollRef, gridRef }, (_, col) => {
             setProgress(snapColumn(col, snapValue));
         });
     };
 
     return (
         <>
+            {/* Line */}
             <div
                 className="relative h-screen z-40"
                 style={{
@@ -41,6 +52,7 @@ export const ProgressSelector = () => {
                 ></div>
             </div>
 
+            {/* Knob */}
             <div
                 className="relative h-screen z-40"
                 style={{
@@ -53,9 +65,10 @@ export const ProgressSelector = () => {
                 <div className="sticky h-3 w-3 z-40 top-0 rounded-sm bg-blue-500 -rotate-45 transform origin-top-left"></div>
             </div>
 
+            {/* Background */}
             <div
                 onMouseDown={handleMouseDown}
-                className="fixed h-4 w-screen bg-slate-400 z-30 overflow-hidden"
+                className="fixed h-4 w-screen left-0 bg-slate-400 z-30 overflow-hidden"
             >
                 <div className="relative">
                     <div className="w-16 overflow-hidden inline-block"></div>

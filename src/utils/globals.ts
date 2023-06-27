@@ -9,3 +9,4 @@ export const setInstrumentPlayer = (player: Player) => {
     instrumentPlayer = player;
 }
 export const PIANO_ROLL_HEIGHT = getHeightOfPianoRoll()
+

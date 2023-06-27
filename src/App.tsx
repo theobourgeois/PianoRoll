@@ -3,20 +3,35 @@ import { DEFAULT_BPM, DEFAULT_SNAP_VALUE } from "./utils/constants";
 import {
     BPMContext,
     InstrumentContext,
+    LayersContext,
     NotesContext,
     PlayingContext,
+    PlayingTypeContext,
     ProgressContext,
     SnapValueContext,
 } from "./utils/context";
-import { PianoRoll } from "./components/piano-roll/PianoRoll";
 import { Controls } from "./components/controls/Controls";
-import { NoteData } from "./utils/types";
-import { reanitializeInstrument } from "./utils/util-functions";
+import { Layer, NoteData, PlayingType } from "./utils/types";
+import {
+    createNewDefaultLayer,
+    getNewID,
+    reanitializeInstrument,
+} from "./utils/util-functions";
 import { InstrumentName } from "soundfont-player";
 
 function App() {
     const [snapValue, setSnapValue] = useState(DEFAULT_SNAP_VALUE);
-    const [notes, setNotes] = useState<NoteData[]>([]);
+    const [notes, setNotes] = useState<Layer>({
+        id: getNewID(),
+        name: "New Layer",
+        notes: [],
+        instrument: {
+            name: "acoustic_grand_piano",
+            player: null,
+            clientName: "Acoustic Grand Piano",
+        },
+    });
+    const [layers, setLayers] = useState<Layer[]>([notes]);
     const [BPM, setBPM] = useState<number>(DEFAULT_BPM);
     const [progress, setProgress] = useState<number>(0);
     const [playing, setPlaying] = useState<boolean>(false);
@@ -28,40 +43,54 @@ function App() {
         reanitializeInstrument(instrument as InstrumentName);
     }, [instrument]);
 
+    useEffect(() => {
+        setLayers((prevLayers) => {
+            const newLayers = [...prevLayers];
+            const index = newLayers.findIndex((layer) => layer.id === notes.id);
+            newLayers[index] = notes;
+            return newLayers;
+        });
+    }, [notes]);
+
+    useEffect(() => {
+        const fetchLayer = async () => {
+            const defaultLayer = (await createNewDefaultLayer()) as Layer;
+            setNotes(defaultLayer);
+            setLayers([defaultLayer]);
+        };
+
+        fetchLayer();
+    }, []);
+
     return (
-        <div className="select-none flex bg-slate-200">
-            <div className="h-full">
-                <div className="flex">
-                    <div className="">
-                        <SnapValueContext.Provider
-                            value={{ snapValue, setSnapValue }}
+        <>
+            <SnapValueContext.Provider value={{ snapValue, setSnapValue }}>
+                <NotesContext.Provider value={{ notes, setNotes }}>
+                    <BPMContext.Provider value={{ BPM, setBPM }}>
+                        <ProgressContext.Provider
+                            value={{ progress, setProgress }}
                         >
-                            <NotesContext.Provider value={{ notes, setNotes }}>
-                                <BPMContext.Provider value={{ BPM, setBPM }}>
-                                    <ProgressContext.Provider
-                                        value={{ progress, setProgress }}
+                            <PlayingContext.Provider
+                                value={{ playing, setPlaying }}
+                            >
+                                <InstrumentContext.Provider
+                                    value={{
+                                        instrument,
+                                        setInstrument,
+                                    }}
+                                >
+                                    <LayersContext.Provider
+                                        value={{ layers, setLayers }}
                                     >
-                                        <PlayingContext.Provider
-                                            value={{ playing, setPlaying }}
-                                        >
-                                            <PianoRoll />
-                                            <InstrumentContext.Provider
-                                                value={{
-                                                    instrument,
-                                                    setInstrument,
-                                                }}
-                                            >
-                                                <Controls />
-                                            </InstrumentContext.Provider>
-                                        </PlayingContext.Provider>
-                                    </ProgressContext.Provider>
-                                </BPMContext.Provider>
-                            </NotesContext.Provider>
-                        </SnapValueContext.Provider>
-                    </div>
-                </div>
-            </div>
-        </div>
+                                        <Controls />
+                                    </LayersContext.Provider>
+                                </InstrumentContext.Provider>
+                            </PlayingContext.Provider>
+                        </ProgressContext.Provider>
+                    </BPMContext.Provider>
+                </NotesContext.Provider>
+            </SnapValueContext.Provider>
+        </>
     );
 }
 

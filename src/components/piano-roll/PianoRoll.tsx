@@ -13,13 +13,13 @@ export const PianoRoll = (): JSX.Element => {
     );
 
     return (
-        <div className="flex">
+        <>
             <Selection />
             <Piano />
             <Grid
                 handleMouseMoveOnGrid={handleMouseMoveOnGrid}
                 handleMouseDownOnGrid={handleMouseDownOnGrid}
             />
-        </div>
+        </>
     );
 };

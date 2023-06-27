@@ -10,103 +10,71 @@ import { CgImport, CgSoftwareDownload } from "react-icons/cg";
 import { InstrumentOptions } from "./InstrumentOptions";
 import { useControls } from "./useControls";
 import { DownloadFileDialog } from "./DownloadFileDialog";
-import { useState } from "react";
+import { useRef, useState } from "react";
+import { HEADER_HEIGHT } from "../../utils/constants";
+import { PianoRoll } from "../piano-roll/PianoRoll";
+import { GridRefContext, PianoRollRefContext } from "../../utils/context";
+import { FaLayerGroup } from "react-icons/fa";
+import { Header } from "./Header";
+import { Layers } from "../layers/Layers";
+import { PlayingType } from "../../utils/types";
 
 export const Controls = (): JSX.Element => {
-    const {
-        togglePlay,
-        playing,
-        handleStop,
-        BPM,
-        handleBPMChange,
-        handleSnapValueChange,
-        snapValue,
-        fileInputRef,
-        exportPianoRoll,
-    } = useControls();
-
+    const [playingType, setPlayingType] = useState<PlayingType>(
+        PlayingType.SONG
+    );
     const [downloadFileDialogOpen, setDownloadFileDialogOpen] =
         useState<boolean>(false);
     const handleToggleDownloadFileDialog = () => {
         setDownloadFileDialogOpen(!downloadFileDialogOpen);
     };
+    const {
+        togglePlay,
+        handleStop,
+        handleBPMChange,
+        handleSnapValueChange,
+        fileInputRef,
+        exportPianoRoll,
+    } = useControls(playingType, setPlayingType);
+
+    const pianoRollRef = useRef<HTMLDivElement>(null);
+    const gridRef = useRef<HTMLDivElement>(null);
+
+    const [sideBarOpen, setSideBarOpen] = useState<boolean>(true);
+    const handleToggleSideBar = () => {
+        setSideBarOpen(!sideBarOpen);
+    };
+
+    const headerProps = {
+        togglePlay,
+        handleStop,
+        handleBPMChange,
+        handleSnapValueChange,
+        fileInputRef,
+        exportPianoRoll,
+        downloadFileDialogOpen,
+        handleToggleDownloadFileDialog,
+        handleToggleSideBar,
+        playingType,
+        setPlayingType,
+    };
 
     return (
-        <div className="fixed flex items-center right-0 top-0 m-2 mt-6 drop-shadow-lg rounded-md p-2 w-max h-max z-50 bg-slate-200">
-            <div
-                onClick={togglePlay}
-                className="bg-blue-500 hover:bg-blue-600 ml-2 w-8 h-8 flex items-center justify-center rounded-md"
-            >
-                {playing ? (
-                    <TbPlayerPauseFilled color="white" className="w-6 h-6" />
-                ) : (
-                    <TbPlayerPlayFilled color="white" className="w-6 h-6" />
-                )}
-            </div>
-            <div
-                onClick={handleStop}
-                className="bg-red-500 hover:bg-red-600 mx-2 w-8 h-8 flex items-center justify-center rounded-md"
-            >
-                <TbPlayerStopFilled color="white" className="w-6 h-6" />
-            </div>
-            <div className="flex items-center">
-                <p className="mr-1">BPM</p>
-                <DraggableNumInput
-                    value={BPM}
-                    min={10}
-                    max={500}
-                    onChange={handleBPMChange}
-                />
-            </div>
+        <div className="select-none flex flex-col h-screen bg-slate-200 overflow-hidden">
+            <Header {...headerProps} />
 
-            <div className="flex items-center">
-                <div className="bg-blue-500 mx-2 w-6 h-6 flex items-center justify-center rounded-md">
-                    <BiMagnet color="white" className="w-6 h-6" />
-                </div>
-                <select
-                    className="rounded-sm"
-                    onChange={handleSnapValueChange}
-                    value={snapValue}
+            <div className="flex flex-1 overflow-hidden">
+                <div
+                    className="w-full h-full overflow-y-auto overflow-x-hidden flex"
+                    ref={pianoRollRef}
                 >
-                    <option value="1">1/8</option>
-                    <option value="2">1/4</option>
-                    <option value="4">1/2</option>
-                    <option value="8">1/1</option>
-                </select>
-            </div>
-
-            <div className="flex items-center">
-                <div className="bg-blue-500 mx-2 w-6 h-6 flex items-center justify-center rounded-md">
-                    <MdPiano color="white" className="w-6 h-6" />
+                    <PianoRollRefContext.Provider value={pianoRollRef}>
+                        <GridRefContext.Provider value={gridRef}>
+                            <PianoRoll />
+                        </GridRefContext.Provider>
+                    </PianoRollRefContext.Provider>
                 </div>
-                <InstrumentOptions />
-            </div>
-
-            <div className="flex items-center relative mx-2">
-                <label
-                    className="flex bg-blue-500 hover:bg-blue-600  px-2 rounded-sm text-white"
-                    htmlFor="file"
-                >
-                    <CgImport color="white" className="w-5 h-5 mr-1" />
-                    Import MIDI file
-                </label>
-                <input
-                    className="absolute opacity-0 w-full"
-                    ref={fileInputRef}
-                    type="file"
-                />
-            </div>
-
-            <DownloadFileDialog
-                exportPianoRoll={exportPianoRoll}
-                open={downloadFileDialogOpen}
-            />
-            <div
-                onClick={handleToggleDownloadFileDialog}
-                className="flex bg-blue-500 hover:bg-blue-600 px-2 rounded-sm items-center text-white h-6"
-            >
-                <CgSoftwareDownload color="white" className="w-5 h-5 mr-1" />
-                Export File
+                <Layers sideBarOpen={sideBarOpen} />
             </div>
         </div>
     );
