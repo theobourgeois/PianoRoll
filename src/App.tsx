@@ -6,7 +6,6 @@ import {
     LayersContext,
     NotesContext,
     PlayingContext,
-    PlayingTypeContext,
     ProgressContext,
     SnapValueContext,
 } from "./utils/context";
@@ -47,8 +46,11 @@ function App() {
         setLayers((prevLayers) => {
             const newLayers = [...prevLayers];
             const index = newLayers.findIndex((layer) => layer.id === notes.id);
-            newLayers[index] = notes;
-            return newLayers;
+            if (index >= 0) {
+                newLayers[index] = notes;
+                return newLayers;
+            }
+            return prevLayers;
         });
     }, [notes]);
 

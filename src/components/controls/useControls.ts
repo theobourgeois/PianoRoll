@@ -31,15 +31,18 @@ export const useControls = (playingType: PlayingType, setPlayingType: (type: Pla
     const { instrument } = useContext(InstrumentContext);
     const { layers } = useContext(LayersContext);
 
-
     const tempProgressRef = useRef<number>(0);
     const layersRef = useRef<Layer[]>(layers);
-
     const selectedLayerRef = useRef<Layer>(notes);
     const playingRef = useRef<boolean>(false);
     const progressRef = useRef<number>(progress);
     const BPMRef = useRef<number>(BPM);
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const playingTypeRef = useRef<PlayingType>(playingType);
+
+    useEffect(() => {
+        playingTypeRef.current = playingType;
+    }, [playingType]);
 
     useEffect(() => {
         MidiParser.parse(fileInputRef.current, (obj: any) => {
@@ -96,10 +99,16 @@ export const useControls = (playingType: PlayingType, setPlayingType: (type: Pla
     };
 
     const playSong = async () => {
+        if (layersRef.current.length === 0) return;
+        const noTracks = layersRef.current.every(layer => layer.notes.length === 0);
+        if (noTracks) return;
+
+        console.log(layersRef.current.map(layer => getNearestBar(layer.notes)))
         let farthestCol = Math.max(...layersRef.current.map(layer => getNearestBar(layer.notes)));
         if (farthestCol === -Infinity) return; // If there are no notes
         let unitTimeMs = (60 / (BPMRef.current * 8)) * 1000;
         for (let i = tempProgressRef.current; i < farthestCol; i++) {
+
             if (!playingRef.current) return;
             unitTimeMs = (60 / (BPMRef.current * 8)) * 1000;
             for (const layer of layersRef.current) {
@@ -119,8 +128,10 @@ export const useControls = (playingType: PlayingType, setPlayingType: (type: Pla
         playSong();
     };
 
+
+
     const playPianoRoll = () => {
-        switch (playingType) {
+        switch (playingTypeRef.current) {
             case PlayingType.TRACK:
                 return playTrack();
             case PlayingType.SONG:
@@ -173,9 +184,9 @@ export const useControls = (playingType: PlayingType, setPlayingType: (type: Pla
                 break;
         }
 
-        setNotes((prevNotes: Layer) => ({
-            ...notes,
-            notes: prevNotes.notes.map((note) => {
+        setNotes((prevSelectedLayer: Layer) => ({
+            ...prevSelectedLayer,
+            notes: prevSelectedLayer.notes.map((note) => {
                 const newCol = Math.max(
                     note.selected || noSelectedNote
                         ? note.column + colOffset
@@ -204,9 +215,9 @@ export const useControls = (playingType: PlayingType, setPlayingType: (type: Pla
         const noSelectedNote = selectedLayerRef.current.notes.every(
             (note: NoteData) => !note.selected
         );
-        setNotes((prevNotes: NoteData[]) => {
+        setNotes((prevSelectedLayer: Layer) => {
             return {
-                ...notes, notes: prevNotes.map((note) => {
+                ...prevSelectedLayer, notes: prevSelectedLayer.notes.map((note: NoteData) => {
                     const newNote =
                         note.selected || noSelectedNote
                             ? allNotes[allNotes.length - 1 - (note.row + offset)]
@@ -247,7 +258,7 @@ export const useControls = (playingType: PlayingType, setPlayingType: (type: Pla
             };
             newNotes.push(newNote);
         }
-        setNotes({ ...notes, notes: newNotes });
+        setNotes((prevSelectedLayer: Layer) => ({ ...prevSelectedLayer, notes: newNotes }));
     };
 
     const handleDeleteNotes = () => {
@@ -341,8 +352,8 @@ export const useControls = (playingType: PlayingType, setPlayingType: (type: Pla
         playingRef.current = false;
     };
 
-    const handleSnapValueChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        setSnapValue(parseInt(e.target.value));
+    const handleSnapValueChange = (value: number) => {
+        setSnapValue(value);
     };
 
     const handleBPMChange = (value: number) => {

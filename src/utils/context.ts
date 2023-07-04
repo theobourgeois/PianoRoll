@@ -11,3 +11,4 @@ export const InstrumentContext = createContext<any>('');
 export const PianoRollRefContext = createContext<any>('');
 export const GridRefContext = createContext<any>('');
 export const LayersContext = createContext<any>('');
+export const DarkModeContext = createContext<any>('');

@@ -10,10 +10,14 @@ import { CgImport, CgSoftwareDownload } from "react-icons/cg";
 import { InstrumentOptions } from "./InstrumentOptions";
 import { useControls } from "./useControls";
 import { DownloadFileDialog } from "./DownloadFileDialog";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { HEADER_HEIGHT } from "../../utils/constants";
 import { PianoRoll } from "../piano-roll/PianoRoll";
-import { GridRefContext, PianoRollRefContext } from "../../utils/context";
+import {
+    DarkModeContext,
+    GridRefContext,
+    PianoRollRefContext,
+} from "../../utils/context";
 import { FaLayerGroup } from "react-icons/fa";
 import { Header } from "./Header";
 import { Layers } from "../layers/Layers";
@@ -41,9 +45,20 @@ export const Controls = (): JSX.Element => {
     const gridRef = useRef<HTMLDivElement>(null);
 
     const [sideBarOpen, setSideBarOpen] = useState<boolean>(true);
+    const [darkMode, setDarkMode] = useState<boolean | null>(
+        localStorage.getItem("theme") === "dark" ? true : false
+    );
+
     const handleToggleSideBar = () => {
         setSideBarOpen(!sideBarOpen);
     };
+    const handleToggleDarkMode = () => {
+        setDarkMode(!darkMode);
+    };
+
+    useEffect(() => {
+        localStorage.setItem("theme", darkMode ? "dark" : "light");
+    }, [darkMode]);
 
     const headerProps = {
         togglePlay,
@@ -57,24 +72,29 @@ export const Controls = (): JSX.Element => {
         handleToggleSideBar,
         playingType,
         setPlayingType,
+        handleToggleDarkMode,
     };
 
     return (
-        <div className="select-none flex flex-col h-screen bg-slate-200 overflow-hidden">
-            <Header {...headerProps} />
+        <div className={darkMode ? "dark" : ""}>
+            <div className="flex flex-col h-screen overflow-hidden select-none bg-slate-200 dark:bg-slate-600">
+                <DarkModeContext.Provider value={darkMode}>
+                    <Header {...headerProps} />
 
-            <div className="flex flex-1 overflow-hidden">
-                <div
-                    className="w-full h-full overflow-y-auto overflow-x-hidden flex"
-                    ref={pianoRollRef}
-                >
-                    <PianoRollRefContext.Provider value={pianoRollRef}>
-                        <GridRefContext.Provider value={gridRef}>
-                            <PianoRoll />
-                        </GridRefContext.Provider>
-                    </PianoRollRefContext.Provider>
-                </div>
-                <Layers sideBarOpen={sideBarOpen} />
+                    <div className="flex flex-1 overflow-hidden">
+                        <div
+                            className="flex w-full h-full overflow-x-hidden overflow-y-auto"
+                            ref={pianoRollRef}
+                        >
+                            <PianoRollRefContext.Provider value={pianoRollRef}>
+                                <GridRefContext.Provider value={gridRef}>
+                                    <PianoRoll />
+                                </GridRefContext.Provider>
+                            </PianoRollRefContext.Provider>
+                        </div>
+                        <Layers sideBarOpen={sideBarOpen} />
+                    </div>
+                </DarkModeContext.Provider>
             </div>
         </div>
     );

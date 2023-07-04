@@ -29,7 +29,6 @@ export const DraggableNumInput = ({
         let prevY = e.pageY;
         const handleMouseMove = (e: MouseEvent) => {
             let diff = prevY - e.pageY;
-            console.log(diff);
             if (diff === 0) currThreshold++;
             else currThreshold = 0;
             if (currThreshold > threshold) diff = 1;
@@ -116,7 +115,7 @@ export const DraggableNumInput = ({
                 <div
                     style={{ display: editing ? "none" : "flex" }}
                     onDoubleClick={handleDoubleClick}
-                    className="flex justify-center items-center w-12 select-none cursor-ns-resize border bg-slate-100 py-1 px-2 rounded-md"
+                    className="flex items-center justify-center w-12 px-2 py-1 border rounded-md select-none cursor-ns-resize bg-slate-100"
                 >
                     <p>{value}</p>
                 </div>

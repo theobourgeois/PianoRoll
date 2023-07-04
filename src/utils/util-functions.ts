@@ -50,6 +50,13 @@ export const getRowFromNote = (note: string) => {
 let currentMouseMoveHandler: ((e: MouseEvent) => void) | null = null;
 let currentMouseUpHandler: ((e: MouseEvent) => void) | null = null;
 
+export const hexToRgb = (hex: string) => {
+    const r = parseInt(hex.slice(1, 3), 16);
+    const g = parseInt(hex.slice(3, 5), 16);
+    const b = parseInt(hex.slice(5, 7), 16);
+    return { r, g, b };
+}
+
 export const handleNoteMouseEvents = (refs: PositionRefs,
     mouseMoveHandler: (row: number, col: number, e: MouseEvent) => void
 ) => {
@@ -187,6 +194,7 @@ export const reanitializeInstrument = async (instrument: InstrumentName) => {
 };
 
 export const getNearestBar = (notes: NoteData[]) => {
+    if (notes.length === 0) return BAR_LENGTH
     let farthestCol = Math.max(
         ...notes.map((note: NoteData) => note.column + note.units)
     );

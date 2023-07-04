@@ -48,3 +48,8 @@ export enum PlayingType {
     TRACK = "track",
     SONG = "song",
 }
+
+export enum FileOptions {
+    IMPORT_MIDI = "Import MIDI file",
+    EXPORT = "Export",
+}

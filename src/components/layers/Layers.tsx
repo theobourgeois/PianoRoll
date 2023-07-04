@@ -1,19 +1,12 @@
-import { useContext, useEffect } from "react";
-import {
-    INSTRUMENT_OPTIONS,
-    LAYER_HEIGHT,
-    SIDEBAR_WIDTH,
-} from "../../utils/constants";
+import { memo, useContext, useEffect } from "react";
+import { INSTRUMENT_OPTIONS, SIDEBAR_WIDTH } from "../../utils/constants";
 import { LayersContext, NotesContext } from "../../utils/context";
-import { audioContext, idGen } from "../../utils/globals";
+import { audioContext } from "../../utils/globals";
 import { Layer } from "../../utils/types";
-import { CanvasLayerImage } from "./CanvasLayerImage";
 import { BiLayerPlus } from "react-icons/bi";
-import { FiEdit2 } from "react-icons/fi";
-import { MdDelete } from "react-icons/md";
 import { getNewID } from "../../utils/util-functions";
 import { LayerCard } from "./Layer";
-import Soundfont, { InstrumentName } from "soundfont-player";
+import Soundfont from "soundfont-player";
 
 interface LayersProps {
     sideBarOpen: boolean;
@@ -21,7 +14,7 @@ interface LayersProps {
 
 export const Layers = ({ sideBarOpen }: LayersProps): JSX.Element => {
     const { layers, setLayers } = useContext(LayersContext);
-    const { notes, setNotes } = useContext(NotesContext);
+    const { setNotes } = useContext(NotesContext);
 
     const handleAddLayer = async () => {
         const player = await Soundfont.instrument(
@@ -39,17 +32,53 @@ export const Layers = ({ sideBarOpen }: LayersProps): JSX.Element => {
             },
         };
         setLayers([...layers, newLayer]);
+        setNotes({ ...newLayer });
     };
 
     return (
+        <>
+            <div
+                style={{
+                    transition: "margin-left 0.2s ease-in-out",
+                    marginLeft: `${sideBarOpen ? SIDEBAR_WIDTH : 0}px`,
+                }}
+            ></div>
+            <div
+                className="absolute  flex h-screen z-[100] bg-slate-200 dark:bg-slate-600 px-2 overflow-auto flex-col items-center"
+                style={{
+                    width: `${SIDEBAR_WIDTH}px`,
+                    right: `${sideBarOpen ? 0 : -SIDEBAR_WIDTH}px`,
+                    transition: "right 0.2s ease-in-out",
+                }}
+            >
+                <p className="mt-2 mb-4 text-lg font-bold dark:text-slate-200 text-slate-700">
+                    Layers
+                </p>
+
+                <div className="flex flex-col items-center">
+                    {layers.map((layer: Layer) => (
+                        <LayerCard key={getNewID()} layer={layer} />
+                    ))}
+                    <BiLayerPlus
+                        onClick={handleAddLayer}
+                        className="w-8 h-8 mt-2 cursor-pointer hover:text-blue-600 dark:hover:text-blue-300 dark:text-slate-200 text-slate-700"
+                    />
+                </div>
+            </div>
+        </>
+    );
+
+    return (
         <div
-            className="w-44 h-screen z-[100] bg-slate-200 overflow-auto flex-col items-center"
+            className="flex h-screen z-[100] bg-slate-200 dark:bg-slate-600 px-2 overflow-auto flex-col items-center"
             style={{
-                display: sideBarOpen ? "flex" : "none",
-                width: SIDEBAR_WIDTH + "px",
+                transition: "margin-left 0.2s ease-in-out",
+                marginLeft: `${sideBarOpen ? SIDEBAR_WIDTH : 0}px`,
             }}
         >
-            <p className="text-lg font-bold mb-4">Layers</p>
+            <p className="mt-2 mb-4 text-lg font-bold dark:text-slate-200 text-slate-700">
+                Layers
+            </p>
 
             <div className="flex flex-col items-center">
                 {layers.map((layer: Layer) => (
@@ -57,7 +86,7 @@ export const Layers = ({ sideBarOpen }: LayersProps): JSX.Element => {
                 ))}
                 <BiLayerPlus
                     onClick={handleAddLayer}
-                    className="mt-2 cursor-pointer w-8 h-8 hover:text-blue-600"
+                    className="w-8 h-8 mt-2 cursor-pointer hover:text-blue-600 dark:hover:text-blue-300 dark:text-slate-200 text-slate-700"
                 />
             </div>
         </div>

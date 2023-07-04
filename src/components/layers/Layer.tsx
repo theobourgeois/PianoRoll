@@ -12,7 +12,7 @@ interface LayerProps {
     layer: Layer;
 }
 export const LayerCard = ({ layer }: LayerProps) => {
-    const { setNotes } = useContext(NotesContext);
+    const { notes, setNotes } = useContext(NotesContext);
     const { layers, setLayers } = useContext(LayersContext);
     const [editingLayer, setEditingLayer] = useState<boolean>(false);
     const inputRef = useRef<HTMLInputElement>(null);
@@ -30,9 +30,14 @@ export const LayerCard = ({ layer }: LayerProps) => {
     };
 
     const handleDeleteLayer = (layer: Layer) => {
-        const newLayers = layers.filter((l: Layer) => l.id !== layer.id);
-        setLayers(newLayers);
-        setNotes({ ...newLayers[0] });
+        if (layers.length === 1) return;
+        setLayers((prevLayers: Layer[]) => {
+            const newLayers = prevLayers.filter(
+                (l: Layer) => l.id !== layer.id
+            );
+            setNotes({ ...newLayers[0] });
+            return newLayers;
+        });
     };
 
     const handleToggleEditingLayerName = (e: React.MouseEvent) => {
@@ -50,6 +55,7 @@ export const LayerCard = ({ layer }: LayerProps) => {
     const handleSubmitLayerName = (
         e: React.KeyboardEvent | React.MouseEvent
     ) => {
+        e.stopPropagation();
         if (!inputRef.current) return;
         if ("key" in e) {
             if (e.key === "Enter") {
@@ -66,7 +72,7 @@ export const LayerCard = ({ layer }: LayerProps) => {
     return (
         <div
             onClick={() => handleLayerChange(layer)}
-            className="group flex flex-col items-center mb-4 "
+            className="flex flex-col items-center mb-4 group"
         >
             <div>
                 <div
@@ -74,26 +80,28 @@ export const LayerCard = ({ layer }: LayerProps) => {
                     style={{
                         display: editingLayer ? "none" : "flex",
                     }}
-                    className="items-center justify-center group-hover:text-blue-600 group cursor-pointer"
+                    className="items-center justify-center cursor-pointer group-hover:text-blue-600 group dark:group-hover:text-blue-300"
                 >
-                    <p className="mb-1 peer ">{layer.name}</p>
-                    <FiEdit2 className="group-hover:block hidden" />
+                    <p className="mb-1 font-semibold peer dark:text-slate-200 text-slate-700">
+                        {layer.name}
+                    </p>
+                    <FiEdit2 className="hidden group-hover:block" />
                 </div>
                 <div
                     style={{ display: editingLayer ? "flex" : "none" }}
-                    className="w-1/4 items-center justify-center mb-2 mx-auto"
+                    className="items-center justify-center w-1/4 mx-auto mb-2"
                 >
                     <input
                         ref={inputRef}
                         onKeyDown={handleSubmitLayerName}
-                        className="w-28 rounded-md h-6 text-center bg-slate-300 px-2"
+                        className="h-6 px-2 text-center rounded-md w-28 bg-slate-300 dark:bg-slate-700 dark:text-white"
                         type="text"
                     ></input>
                     <div
                         onClick={handleSubmitLayerName}
-                        className="pointer-cursor flex justify-center items-center ml-2 w-4 h-4 hover:bg-green-500 rounded-full"
+                        className="flex items-center justify-center w-4 h-4 ml-2 rounded-full cursor-pointer pointer-cursor text-slate-400 hover:text-slate-600 dark:text-slate-200 dark:hover:text-white"
                     >
-                        <AiOutlineCheck />
+                        <AiOutlineCheck className="w-8 h-8" />
                     </div>
                 </div>
             </div>
@@ -102,12 +110,17 @@ export const LayerCard = ({ layer }: LayerProps) => {
                     width: SIDEBAR_WIDTH * 0.75 + "px",
                     height: LAYER_HEIGHT + "px",
                 }}
-                className="cursor-pointer outline outline-slate-400 rounded-md relative hover:drop-shadow-lg group-hover:outline-blue-600"
+                className={
+                    "relative bg-white rounded-md cursor-pointer outline outline-4 outline-slate-400 hover:drop-shadow-lg group-hover:outline-blue-600 dark:group-hover:outline-blue-300" +
+                    (layer.id === notes.id
+                        ? " dark:outline-blue-300 outline-blue-600"
+                        : "")
+                }
             >
                 <MdDelete
                     onClick={() => handleDeleteLayer(layer)}
                     title="delete layer"
-                    className="absolute ml-4 bottom-0 right-0 m-1 mt-2 group-hover:block hidden w-6 h-6 text-blue-500"
+                    className="absolute top-0 right-0 hidden w-6 h-6 m-1 ml-4 text-blue-400 hover:text-blue-500 group-hover:block dark:text-blue-300 hover:dark:text-blue-400"
                 />
 
                 <CanvasLayerImage layer={layer} />

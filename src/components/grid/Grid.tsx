@@ -4,18 +4,22 @@ import {
     NOTE_HEIGHT,
     NOTE_STROKE_COLOR,
     NOTE_WIDTH,
-    PIANO_WIDTH,
     SELECTED_NOTE_COLOR,
 } from "../../utils/constants";
 import {
+    DarkModeContext,
     GridRefContext,
+    LayersContext,
     NotesContext,
     PianoRollRefContext,
-    ProgressContext,
 } from "../../utils/context";
 import { allNotes, PIANO_ROLL_HEIGHT } from "../../utils/globals";
 import { NoteData } from "../../utils/types";
-import { ellipsized, getNearestBar } from "../../utils/util-functions";
+import {
+    ellipsized,
+    getNearestBar,
+    hexToRgb,
+} from "../../utils/util-functions";
 import { ProgressSelector } from "../progress-selector/ProgressSelector";
 
 interface GridProps {
@@ -28,12 +32,13 @@ export const Grid = ({
     handleMouseMoveOnGrid,
 }: GridProps): JSX.Element => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
-
+    const { layers } = useContext(LayersContext);
     const [context, setContext] = useState<CanvasRenderingContext2D | null>(
         null
     );
     const [gridWidth, setGridWidth] = useState<number>(window.innerWidth);
 
+    const darkMode = useContext(DarkModeContext);
     const { notes } = useContext(NotesContext);
     const gridRef = useContext(GridRefContext);
     const pianoRollRef = useContext(PianoRollRefContext);
@@ -44,15 +49,27 @@ export const Grid = ({
         setContext(ctx);
     }, []);
 
-    const placeNote = (note: NoteData) => {
+    const placeNote = (note: NoteData, ghost = false) => {
         if (!context) return;
         const x = note.column * NOTE_WIDTH;
         const y = (allNotes.length - 1 - note.row) * NOTE_HEIGHT;
         const height = NOTE_HEIGHT;
         const width = NOTE_WIDTH * note.units;
 
-        context.fillStyle = note.selected ? SELECTED_NOTE_COLOR : NOTE_COLOR;
+        const noteColorRGB = hexToRgb(NOTE_COLOR);
+        const noteColor = `rgba(${noteColorRGB.r}, ${noteColorRGB.g}, ${
+            noteColorRGB.b
+        }, ${ghost ? 0.5 : 1})`;
+
+        const selectedNoteColorRGB = hexToRgb(SELECTED_NOTE_COLOR);
+        const selectedNoteColor = `rgba(${selectedNoteColorRGB.r}, ${
+            selectedNoteColorRGB.g
+        }, ${selectedNoteColorRGB.b}, ${ghost ? 0.1 : 1})`;
+
+        context.fillStyle = note.selected ? selectedNoteColor : noteColor;
         context.fillRect(x, y, width, height);
+        if (ghost) return;
+
         context.strokeStyle = NOTE_STROKE_COLOR;
         context.strokeRect(x, y, width, height);
         context.fillStyle = "black";
@@ -84,33 +101,31 @@ export const Grid = ({
     useEffect(() => {
         if (!context) return;
 
-        // Calculate the width even if no notes are present
         const farthestCol =
             notes.notes.length > 0 ? getNearestBar(notes.notes) : 0;
         const gridWidth = (farthestCol + 1) * NOTE_WIDTH + 3000;
 
-        // Set gridImgRef current's style minWidth if gridImgRef current is not null
         if (gridImgRef.current) {
             gridImgRef.current.style.minWidth = gridWidth + "px";
         }
-        //setGridWidth(gridWidth);
+        setGridWidth(gridWidth);
 
         context.clearRect(0, 0, gridWidth, PIANO_ROLL_HEIGHT);
 
-        // Draw the notes only if notes are present
-        if (notes.notes.length > 0) {
-            for (let i = 0; i < notes.notes.length; i++) {
-                const note = notes.notes[i];
-                placeNote(note);
+        if (layers.length > 0) {
+            for (let i = 0; i < layers.length; i++) {
+                for (let j = 0; j < layers[i].notes.length; j++) {
+                    const note = layers[i].notes[j];
+                    placeNote(note, layers[i].id !== notes.id);
+                }
             }
         }
     }, [notes, context, gridWidth]);
-
     return (
         <>
             <ProgressSelector />
             <div
-                className="w-full flex-shrink-0 overflow-x-auto overflow-y-hidden relative"
+                className="relative flex-shrink-0 w-full overflow-x-auto overflow-y-hidden"
                 onContextMenu={handleRightClick}
                 ref={gridRef}
                 style={{
@@ -125,7 +140,9 @@ export const Grid = ({
                         height: PIANO_ROLL_HEIGHT + "px",
                         //minWidth: gridWidth + 3000 + "px",
                         backgroundRepeat: "repeat",
-                        backgroundImage: 'url("assets/grid-01.svg")',
+                        backgroundImage: `url("assets/grid-${
+                            darkMode ? "02" : "01"
+                        }.svg")`,
                     }}
                 >
                     <canvas
