@@ -9,10 +9,13 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@pixi/react": "^7.1.0",
     "audiobuffer-to-wav": "^1.0.0",
     "html2canvas": "^1.4.1",
     "lamejs": "^1.2.1",
+    "lodash": "^4.17.21",
     "midi-parser-js": "^4.0.4",
+    "pixi.js": "^7.2.4",
     "react": "^18.2.0",
     "react-click-away-listener": "^2.2.3",
     "react-dnd": "^16.0.1",

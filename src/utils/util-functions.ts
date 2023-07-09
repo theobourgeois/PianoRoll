@@ -1,6 +1,7 @@
-import { NoteData, Position } from "./types";
+import { Instrument, NoteData, Position, PositionRefs } from "./types";
 import {
     BAR_LENGTH,
+    HEADER_HEIGHT,
     NOTES,
     NOTE_HEIGHT,
     NOTE_WIDTH,
@@ -11,10 +12,22 @@ import {
     allNotes,
     idGen,
     audioContext,
-    instrumentPlayer,
     setInstrumentPlayer,
 } from "./globals";
 import Soundfont, { InstrumentName } from "soundfont-player";
+
+export const createNewDefaultLayer = async () => {
+    return {
+        id: getNewID(),
+        name: "New Layer",
+        notes: [],
+        instrument: {
+            name: "acoustic_grand_piano",
+            player: await Soundfont.instrument(audioContext, "acoustic_grand_piano"),
+            clientName: "Acoustic Grand Piano",
+        },
+    };
+}
 
 export function* idGenerator() {
     let id = 0;
@@ -36,7 +49,14 @@ export const getRowFromNote = (note: string) => {
 let currentMouseMoveHandler: ((e: MouseEvent) => void) | null = null;
 let currentMouseUpHandler: ((e: MouseEvent) => void) | null = null;
 
-export const handleNoteMouseEvents = (
+export const hexToRgb = (hex: string) => {
+    const r = parseInt(hex.slice(1, 3), 16);
+    const g = parseInt(hex.slice(3, 5), 16);
+    const b = parseInt(hex.slice(5, 7), 16);
+    return { r, g, b };
+}
+
+export const handleNoteMouseEvents = (refs: PositionRefs,
     mouseMoveHandler: (row: number, col: number, e: MouseEvent) => void
 ) => {
     // If there are already event listeners attached, remove them first.
@@ -46,7 +66,9 @@ export const handleNoteMouseEvents = (
         window.removeEventListener("mouseup", currentMouseUpHandler);
     }
     const handleMouseMove = (e: MouseEvent) => {
-        const { row, col } = getNoteCoordsFromMousePosition(e);
+        const { row, col } = getNoteCoordsFromMousePosition(e, refs);
+        const { pianoRollRef, gridRef } = refs;
+
         const pastWindowWidthRight = e.clientX >= window.innerWidth - 1;
         const pastWindowWidthLeft = e.clientX <= 1;
         const pastWindowHeightTop = e.clientY >= window.innerHeight - 1;
@@ -61,7 +83,11 @@ export const handleNoteMouseEvents = (
             : pastWindowHeightBottom
                 ? -SCROLL_VALUE
                 : 0;
-        window.scrollBy(widthScrollValue, heightScrollValue);
+
+        if (pianoRollRef.current && gridRef.current) {
+            pianoRollRef.current.scrollBy(0, heightScrollValue);
+            gridRef.current.scrollBy(widthScrollValue, 0);
+        }
         mouseMoveHandler(row, col, e);
     };
 
@@ -92,9 +118,10 @@ export const getAllNotesFromOctaveCount = (
 export const getHeightOfPianoRoll = () => allNotes.length * NOTE_HEIGHT;
 
 export const getNoteCoordsFromMousePosition = (
-    e: React.MouseEvent | MouseEvent
+    e: React.MouseEvent | MouseEvent,
+    refs: PositionRefs,
 ) => {
-    const { x, y } = getMousePos(e);
+    const { x, y } = getMousePos(e, refs);
 
     const row = Math.min(
         Math.max(allNotes.length - Math.ceil(y / NOTE_HEIGHT), 0),
@@ -104,9 +131,9 @@ export const getNoteCoordsFromMousePosition = (
     return { row, col };
 };
 
-export const playNote = (note: string, timeMS = 100) => {
-    if (instrumentPlayer)
-        instrumentPlayer.play(note, audioContext.currentTime, {
+export const playNote = (player: Instrument['player'], note: string, timeMS = 100) => {
+    if (player)
+        player.play(note, audioContext.currentTime, {
             duration: timeMS / 1000,
             gain: 5,
         });
@@ -126,7 +153,7 @@ export const makeNewNote = (row: number, col: number, noteLength: number) => {
         units: noteLength,
         velocity: 1,
         pan: 1,
-        id: idGen.next().value as number,
+        id: getNewID(),
         selected: false,
     };
 };
@@ -153,9 +180,11 @@ export const timer = (ms: number) => {
     });
 };
 
-export const getMousePos = (e: MouseEvent | React.MouseEvent): Position => {
-    const x = e.clientX + window.scrollX;
-    const y = e.clientY + window.scrollY;
+export const getMousePos = (e: MouseEvent | React.MouseEvent, refs: PositionRefs): Position => {
+    const { pianoRollRef, gridRef } = refs;
+    if (!pianoRollRef.current || !gridRef.current) return { x: 0, y: 0 };
+    const x = e.clientX + gridRef.current.scrollLeft
+    const y = e.clientY + pianoRollRef.current?.scrollTop - HEADER_HEIGHT;
     return { x, y };
 };
 
@@ -164,11 +193,13 @@ export const reanitializeInstrument = async (instrument: InstrumentName) => {
 };
 
 export const getNearestBar = (notes: NoteData[]) => {
+    if (notes.length === 0) return BAR_LENGTH
     let farthestCol = Math.max(
         ...notes.map((note: NoteData) => note.column + note.units)
     );
     if (farthestCol % BAR_LENGTH !== 0)
         farthestCol += BAR_LENGTH - (farthestCol % BAR_LENGTH);
+
     return farthestCol;
 };
 
@@ -203,7 +234,7 @@ export const midiToNoteData = (midiData) => {
                         units: currentColumn - noteStart.start,
                         velocity: noteStart.velocity,
                         pan: 0,
-                        id: index,
+                        id: getNewID(),
                         selected: false,
                     };
                     noteData.push(note);
@@ -224,4 +255,6 @@ export const ellipsized = (str: string, maxLength: number) => {
     }
     return str;
 }
+
+export const getNewID = () => idGen.next().value as number;
 

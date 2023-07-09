@@ -1,6 +1,11 @@
-import { useContext } from "react";
-import { NOTE_WIDTH } from "../../utils/constants";
-import { ProgressContext, SnapValueContext } from "../../utils/context";
+import { useContext, useState } from "react";
+import { HEADER_HEIGHT, NOTE_WIDTH } from "../../utils/constants";
+import {
+    GridRefContext,
+    PianoRollRefContext,
+    ProgressContext,
+    SnapValueContext,
+} from "../../utils/context";
 import { PIANO_ROLL_HEIGHT } from "../../utils/globals";
 import {
     getNoteCoordsFromMousePosition,
@@ -11,28 +16,36 @@ import {
 export const ProgressSelector = () => {
     const { progress, setProgress } = useContext(ProgressContext);
     const { snapValue } = useContext(SnapValueContext);
+    const pianoRollRef = useContext(PianoRollRefContext);
+    const gridRef = useContext(GridRefContext);
+    const [moving, setMoving] = useState<boolean>(false);
 
     const handleMouseDown = (e: React.MouseEvent) => {
-        const { col } = getNoteCoordsFromMousePosition(e);
+        const { col } = getNoteCoordsFromMousePosition(e, {
+            pianoRollRef,
+            gridRef,
+        });
         setProgress(snapColumn(col, snapValue));
-        handleNoteMouseEvents((_, col) => {
+        handleNoteMouseEvents({ pianoRollRef, gridRef }, (_, col) => {
             setProgress(snapColumn(col, snapValue));
         });
+        setMoving(true);
     };
 
     return (
         <>
+            {/* Line */}
             <div
-                className="relative h-screen z-40"
+                className="relative z-40 h-screen"
                 style={{
                     left: progress * NOTE_WIDTH,
-                    transition: "100ms left",
+                    transition: moving ? "" : "100ms left",
                     top: 0,
                     height: PIANO_ROLL_HEIGHT + "px",
                 }}
             >
                 <div
-                    className="absolute h-screen bg-black z-40"
+                    className="absolute z-40 h-screen bg-black"
                     style={{
                         display: progress == 0 ? "none" : "",
                         width: "1px",
@@ -41,24 +54,27 @@ export const ProgressSelector = () => {
                 ></div>
             </div>
 
+            {/* Knob */}
             <div
-                className="relative h-screen z-40"
+                className="relative z-40 h-screen"
                 style={{
                     left: progress * NOTE_WIDTH - 8,
-                    transition: "100ms left",
+                    transition: moving ? "" : "100ms left",
                     top: 0,
                     height: PIANO_ROLL_HEIGHT + "px",
                 }}
             >
-                <div className="sticky h-3 w-3 z-40 top-0 rounded-sm bg-blue-500 -rotate-45 transform origin-top-left"></div>
+                <div className="sticky top-0 z-40 w-3 h-3 origin-top-left transform -rotate-45 bg-blue-500 rounded-sm"></div>
             </div>
 
+            {/* Background */}
             <div
                 onMouseDown={handleMouseDown}
-                className="fixed h-4 w-screen bg-slate-400 z-30 overflow-hidden"
+                onMouseUp={() => setMoving(false)}
+                className="fixed left-0 z-30 w-screen h-4 overflow-hidden bg-slate-400 dark:bg-slate-800"
             >
                 <div className="relative">
-                    <div className="w-16 overflow-hidden inline-block"></div>
+                    <div className="inline-block w-16 overflow-hidden"></div>
                 </div>
             </div>
         </>

@@ -1,31 +1,48 @@
 import { useContext } from "react";
+import Soundfont, { InstrumentName } from "soundfont-player";
 import { INSTRUMENT_OPTIONS } from "../../utils/constants";
-import { InstrumentContext } from "../../utils/context";
-import { idGen } from "../../utils/globals";
+import { NotesContext } from "../../utils/context";
+import { audioContext } from "../../utils/globals";
+import { getNewID } from "../../utils/util-functions";
 import { SelectArrows } from "../select-arrows/SelectArrow";
 
 export const InstrumentOptions = () => {
-    const { instrument, setInstrument } = useContext(InstrumentContext);
+    const { notes, setNotes } = useContext(NotesContext);
+
     const handleInstrumentChange = (
         e: React.ChangeEvent<HTMLSelectElement>
     ) => {
-        setInstrument(e.target.value);
+        const instrument = e.target.value as InstrumentName;
+        handleChangeInstrument(instrument);
+    };
+
+    const handleChangeInstrument = async (instrument: InstrumentName) => {
+        const newNotes = { ...notes };
+        const index = INSTRUMENT_OPTIONS.findIndex(
+            (option) => option.value === instrument
+        );
+        newNotes.instrument = {
+            name: instrument,
+            player: await Soundfont.instrument(audioContext, instrument),
+            clientName: INSTRUMENT_OPTIONS[index].name,
+        };
+        setNotes(newNotes);
     };
 
     const increment = () => {
         const index = INSTRUMENT_OPTIONS.findIndex(
-            (option) => option.value === instrument
+            (option) => option.value === notes.instrument.name
         );
-        const nextIndex = (index + 1) % INSTRUMENT_OPTIONS.length;
-        setInstrument(INSTRUMENT_OPTIONS[nextIndex].value);
+        const nextIndex = (index + 1) % (INSTRUMENT_OPTIONS.length - 1);
+        handleChangeInstrument(INSTRUMENT_OPTIONS[nextIndex].value);
     };
 
     const decrement = () => {
         const index = INSTRUMENT_OPTIONS.findIndex(
-            (option) => option.value === instrument
+            (option) => option.value === notes.instrument.name
         );
-        const nextIndex = (index - 1) % INSTRUMENT_OPTIONS.length;
-        setInstrument(INSTRUMENT_OPTIONS[nextIndex].value);
+        const nextIndex = (index - 1) % (INSTRUMENT_OPTIONS.length - 1);
+        handleChangeInstrument(INSTRUMENT_OPTIONS[nextIndex].value);
     };
 
     return (
@@ -33,13 +50,10 @@ export const InstrumentOptions = () => {
             <select
                 className="rounded-sm"
                 onChange={handleInstrumentChange}
-                value={instrument}
+                value={notes.instrument.name}
             >
                 {INSTRUMENT_OPTIONS.map((option) => (
-                    <option
-                        key={idGen.next().value as number}
-                        value={option.value}
-                    >
+                    <option key={getNewID()} value={option.value}>
                         {option.name}
                     </option>
                 ))}

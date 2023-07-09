@@ -4,9 +4,11 @@ import {
     NotesContext,
     SnapValueContext,
     PlayingContext,
+    PianoRollRefContext,
+    GridRefContext,
 } from "../../utils/context";
 import { allNotes, idGen } from "../../utils/globals";
-import { NoteData } from "../../utils/types";
+import { Layer, NoteData } from "../../utils/types";
 import {
     snapColumn,
     getMousePos,
@@ -14,6 +16,7 @@ import {
     handleNoteMouseEvents,
     getNoteCoordsFromMousePosition,
     makeNewNote,
+    getNewID,
 } from "../../utils/util-functions";
 
 export const usePianoRoll = (
@@ -23,22 +26,26 @@ export const usePianoRoll = (
     const { notes, setNotes } = useContext(NotesContext);
     const { snapValue } = useContext(SnapValueContext);
     const { playing } = useContext(PlayingContext);
+    const pianoRollRef = useContext(PianoRollRefContext);
+    const gridRef = useContext(GridRefContext);
 
     const handleChangeNote = (note: NoteData) => {
-        const newNotes = [...notes];
-        const index = newNotes.findIndex((n: NoteData) => n.id === note.id);
+        const newSelectedLayer: Layer = { ...notes };
+        const index = newSelectedLayer.notes.findIndex(
+            (n: NoteData) => n.id === note.id
+        );
 
         if (index > -1) {
-            newNotes[index] = note;
-            setNotes(newNotes);
+            newSelectedLayer.notes[index] = note;
+            setNotes(newSelectedLayer);
         }
     };
 
     const handleResizeSelectedNotes = useCallback(
         (col: number, note: NoteData) => {
-            const newNotes = [...notes];
-            for (const n of notes) {
-                if (!n.selected) continue;
+            const newSelectedLayer = { ...notes };
+            const updatedNotes = newSelectedLayer.notes.map((n: NoteData) => {
+                if (!n.selected) return n;
                 let newUnits = Math.max(
                     snapColumn(
                         n.units + col - note.units - note.column,
@@ -46,13 +53,10 @@ export const usePianoRoll = (
                     ),
                     snapValue
                 );
-
-                const newNote = { ...n, units: newUnits };
-                const index = newNotes.findIndex((note) => n.id === note.id);
-                newNotes[index] = newNote;
-                if (newUnits <= snapValue) return setNotes(newNotes);
-            }
-            setNotes(newNotes);
+                return { ...n, units: newUnits };
+            });
+            newSelectedLayer.notes = updatedNotes;
+            setNotes(newSelectedLayer);
         },
         [notes, snapValue]
     );
@@ -64,7 +68,9 @@ export const usePianoRoll = (
             const offset = e
                 ? Math.max(
                     Math.round(
-                        (getMousePos(e).x - PIANO_WIDTH) / NOTE_WIDTH
+                        (getMousePos(e, { pianoRollRef, gridRef }).x -
+                            PIANO_WIDTH) /
+                        NOTE_WIDTH
                     ) - note.column,
                     0
                 )
@@ -73,7 +79,7 @@ export const usePianoRoll = (
             const rowsMoved = note.row - row;
             const colsMoved = note.column - col;
 
-            const newNotes = [...notes];
+            const newNotes = [...notes.notes];
             const selectedNotes = newNotes.filter((n: NoteData) => n.selected);
 
             for (const n of selectedNotes) {
@@ -91,53 +97,65 @@ export const usePianoRoll = (
                     note: allNotes[allNotes.length - 1 - newRow],
                     id: e.shiftKey ? idGen.next().value : n.id,
                 };
-                if (e.shiftKey) newNotes.push(newNote);
-                else {
+                if (e.shiftKey) {
+                    const index = newNotes.findIndex(
+                        (note: NoteData) => note.id === n.id
+                    );
+                    newNotes[index] = { ...n, selected: false };
+                    newNotes.push({ ...newNote });
+                } else {
                     const index = newNotes.findIndex(
                         (note: NoteData) => note.id === n.id
                     );
                     newNotes[index] = newNote;
                 }
             }
-            setNotes(newNotes);
+            setNotes({ ...notes, notes: newNotes });
         },
         [notes, snapValue]
     );
 
     const handleAddNote = (note: NoteData) => {
-        const newNotes = [...notes];
-        newNotes.push(note);
-        setNotes(newNotes);
+        const newSelectedLayer = { ...notes };
+        newSelectedLayer.notes.push(note);
+        setNotes(newSelectedLayer);
     };
 
     const handleDeleteNote = useCallback(
         (note: NoteData) => {
-            const newNotes = [...notes];
-            const index = newNotes.findIndex((n) => n.id === note.id);
-            newNotes.splice(index, 1);
-            setNotes(newNotes);
+            const newSelectedLayer = { ...notes };
+            const index = newSelectedLayer.notes.findIndex(
+                (n: NoteData) => n.id === note.id
+            );
+            newSelectedLayer.notes.splice(index, 1);
+            setNotes(newSelectedLayer);
         },
         [notes, setNotes]
     );
 
     const handleSelectNote = (note: NoteData) => {
-        const newNotes = [...notes];
-        const index = newNotes.findIndex((n) => n.id === note.id);
-        newNotes[index].selected = !note.selected;
-        setNotes(newNotes);
+        const newSelectedLayer = { ...notes };
+        const index = newSelectedLayer.notes.findIndex(
+            (n: NoteData) => n.id === note.id
+        );
+        newSelectedLayer.notes[index].selected = !note.selected;
+        setNotes(newSelectedLayer);
     };
 
     const handleDeselectAllNotes = () => {
-        const newNotes = [...notes];
-        for (const n of newNotes) n.selected = false;
-        setNotes(newNotes);
+        const newSelectedLayer = { ...notes };
+        for (const n of newSelectedLayer.notes) n.selected = false;
+        setNotes(newSelectedLayer);
     };
 
     const handleDeleteMultipleNotes = (notes: NoteData[]) => {
-        setNotes((prevNotes: NoteData[]) => {
-            return prevNotes.filter(
-                (note) => !notes.some((n) => n.id === note.id)
-            );
+        setNotes((prevActiveLayer: Layer) => {
+            return {
+                ...prevActiveLayer,
+                notes: prevActiveLayer.notes.filter(
+                    (note) => !notes.some((n) => n.id === note.id)
+                ),
+            };
         });
     };
 
@@ -147,48 +165,59 @@ export const usePianoRoll = (
             if ((e.metaKey || e.ctrlKey) && e.shiftKey) return;
             if (e.metaKey || e.ctrlKey) return handleSelectNote(note);
 
-            const clickedPositionX = getMousePos(e).x;
+            const clickedPositionX = getMousePos(e, {
+                pianoRollRef,
+                gridRef,
+            }).x;
             const offset = Math.max(
                 Math.round((clickedPositionX - PIANO_WIDTH) / NOTE_WIDTH) -
                 note.column,
                 0
             );
 
-            if (!playing) playNote(note.note);
+            if (!playing) playNote(notes.instrument.player, note.note);
             let currentNote = note;
             setNoteLength(note.units);
-            handleNoteMouseEvents((row: number, col: number) => {
-                if (note.selected)
-                    return handleChangeNotesWhenNoteSelected(note, row, col, e);
+            handleNoteMouseEvents(
+                { pianoRollRef, gridRef },
+                (row: number, col: number) => {
+                    if (note.selected)
+                        return handleChangeNotesWhenNoteSelected(
+                            note,
+                            row,
+                            col,
+                            e
+                        );
 
-                handleDeselectAllNotes();
-                const newColumn = Math.max(col - offset, 0);
+                    handleDeselectAllNotes();
+                    const newColumn = Math.max(col - offset, 0);
 
-                const newNote = {
-                    ...note,
-                    row,
-                    column: snapColumn(newColumn, snapValue),
-                    note: allNotes[allNotes.length - 1 - row],
-                };
+                    const newNote = {
+                        ...note,
+                        row,
+                        column: snapColumn(newColumn, snapValue),
+                        note: allNotes[allNotes.length - 1 - row],
+                    };
 
-                if (e.shiftKey)
-                    handleAddNote({
-                        ...newNote,
-                        id: idGen.next().value as number,
-                    });
-                else handleChangeNote(newNote);
+                    if (e.shiftKey)
+                        handleAddNote({
+                            ...newNote,
+                            id: getNewID(),
+                        });
+                    else handleChangeNote(newNote);
 
-                if (currentNote.note !== newNote.note && !playing)
-                    playNote(newNote.note);
-                currentNote = newNote;
-            });
+                    if (currentNote.note !== newNote.note && !playing)
+                        playNote(notes.instrument.player, newNote.note);
+                    currentNote = newNote;
+                }
+            );
         },
         [playing, snapValue, handleChangeNote]
     );
 
     const handleResize = useCallback(
         (note: NoteData) => {
-            handleNoteMouseEvents((_, col) => {
+            handleNoteMouseEvents({ pianoRollRef, gridRef }, (_, col) => {
                 if (note.selected) return handleResizeSelectedNotes(col, note);
 
                 handleDeselectAllNotes();
@@ -207,18 +236,21 @@ export const usePianoRoll = (
 
     const handleSelectNotesInBox = useCallback(
         (e: React.MouseEvent, shiftKey: boolean) => {
-            const startPos = getNoteCoordsFromMousePosition(e);
+            const startPos = getNoteCoordsFromMousePosition(e, {
+                pianoRollRef,
+                gridRef,
+            });
             let currentPos = startPos;
 
-            handleNoteMouseEvents((row, col) => {
+            handleNoteMouseEvents({ pianoRollRef, gridRef }, (row, col) => {
                 const minRow = Math.min(startPos.row, currentPos.row);
                 const maxRow = Math.max(startPos.row, currentPos.row);
                 const minCol = Math.min(startPos.col, currentPos.col);
                 const maxCol = Math.max(startPos.col, currentPos.col);
 
                 const newNotes = [];
-                for (let i = 0; i < notes.length; i++) {
-                    const note = notes[i];
+                for (let i = 0; i < notes.notes.length; i++) {
+                    const note = notes.notes[i];
                     const noteRow = note.row;
                     const noteStartCol = note.column;
                     const noteEndCol = note.column + note.units;
@@ -234,7 +266,7 @@ export const usePianoRoll = (
                         selected: shiftKey ? note.selected || inBox : inBox,
                     });
                 }
-                setNotes(newNotes);
+                setNotes({ ...notes, notes: newNotes });
 
                 currentPos = { row, col };
             });
@@ -244,14 +276,17 @@ export const usePianoRoll = (
 
     const handleDeleteNotesGrid = useCallback(
         (e: React.MouseEvent) => {
-            const { row, col } = getNoteCoordsFromMousePosition(e);
-            const note = notes.find((note: NoteData) =>
+            const { row, col } = getNoteCoordsFromMousePosition(e, {
+                pianoRollRef,
+                gridRef,
+            });
+            const note = notes.notes.find((note: NoteData) =>
                 noteOnGrid(note, row, col)
             );
             if (note) handleDeleteNote(note as NoteData);
 
-            handleNoteMouseEvents((row, col) => {
-                const deletableNotes = notes.filter((note: NoteData) =>
+            handleNoteMouseEvents({ pianoRollRef, gridRef }, (row, col) => {
+                const deletableNotes = notes.notes.filter((note: NoteData) =>
                     noteOnGrid(note, row, col)
                 );
                 if (deletableNotes.length > 0)
@@ -271,12 +306,15 @@ export const usePianoRoll = (
 
     const handleMouseDownOnGrid = useCallback(
         (e: React.MouseEvent) => {
-            const { row, col } = getNoteCoordsFromMousePosition(e);
-            const note = notes.find((note: NoteData) =>
+            const { row, col } = getNoteCoordsFromMousePosition(e, {
+                pianoRollRef,
+                gridRef,
+            });
+            const note = notes.notes.find((note: NoteData) =>
                 noteOnGrid(note, row, col)
             );
-            const resizing = note && col === note.column + note.units - 1;
-            if (resizing) return handleResize(note)
+            const resizing = resizingNote(col, row);
+            if (resizing) return handleResize(resizing);
             if (note) return handleMoveNote(e, note);
 
             if (e.metaKey || e.ctrlKey)
@@ -290,19 +328,20 @@ export const usePianoRoll = (
                 noteLength
             );
             handleAddNote(newNote);
-            if (!playing) playNote(newNote.note);
+            if (!playing) playNote(notes.instrument.player, newNote.note);
 
             let currentNote = newNote;
-            //handles moving note after it's been created
-            handleNoteMouseEvents((row, col) => {
+            handleNoteMouseEvents({ pianoRollRef, gridRef }, (row, col) => {
                 const newNote = makeNewNote(
                     row,
                     snapColumn(col, snapValue),
                     noteLength
                 );
                 if (currentNote.note !== newNote.note && !playing) {
-                    playNote(newNote.note);
+                    playNote(notes.instrument.player, newNote.note);
                 }
+                // remove old note and add updated note
+                handleDeleteNote(currentNote);
                 handleAddNote(newNote);
                 currentNote = newNote;
             });
@@ -311,12 +350,34 @@ export const usePianoRoll = (
     );
 
     const handleMouseMoveOnGrid = (e: React.MouseEvent) => {
-        const { row, col } = getNoteCoordsFromMousePosition(e);
-        const note = notes.find((note: NoteData) => noteOnGrid(note, row, col));
-        const resizing = note && col === note.column + note.units - 1;
-        const cursor = resizing ? "ew-resize" : note ? "all-scroll" : "default";
-        document.body.style.cursor = cursor
+        const { row, col } = getNoteCoordsFromMousePosition(e, {
+            pianoRollRef,
+            gridRef,
+        });
+        const note = notes.notes.find((note: NoteData) =>
+            noteOnGrid(note, row, col)
+        );
 
+        const resizing = resizingNote(col, row);
+        let cursor = "default";
+        if (note) cursor = "all-scroll";
+        if (resizing) cursor = "ew-resize";
+        if (e.buttons === RIGHT_CLICK) {
+            cursor = "no-drop";
+            document.onmouseup = () => {
+                document.body.style.cursor = "default";
+                document.onmouseup = null;
+            }
+        };
+        document.body.style.cursor = cursor;
+
+    };
+
+    const resizingNote = (col: number, row: number) => {
+        const closestNote = notes.notes.find((note: NoteData) => {
+            return row === note.row && col === note.column + note.units;
+        })
+        return closestNote;
     }
 
     return {
@@ -324,3 +385,4 @@ export const usePianoRoll = (
         handleMouseDownOnGrid,
     };
 };
+
