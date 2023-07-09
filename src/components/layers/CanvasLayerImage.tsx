@@ -1,4 +1,4 @@
-import { useContext, useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { LAYER_HEIGHT, NOTE_COLOR, SIDEBAR_WIDTH } from "../../utils/constants";
 import { allNotes } from "../../utils/globals";
 import { Layer } from "../../utils/types";

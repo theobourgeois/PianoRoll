@@ -6,7 +6,7 @@ import {
     PlayingContext,
     ProgressContext,
 } from "../../utils/context";
-import { allNotes, idGen } from "../../utils/globals";
+import { allNotes } from "../../utils/globals";
 import { NoteData } from "../../utils/types";
 import {
     getNewID,

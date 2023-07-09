@@ -22,9 +22,8 @@ export const DropDown = ({
     icon,
     selectable = false,
 }: DropDownProps) => {
-    const [selectedValue, setSelectedValue] = useState<Option["value"]>(
-        defaultValue ?? options[0].value
-    );
+    const [selectedValue, setSelectedValue] =
+        useState<Option["value"]>(defaultValue);
     const [open, setOpen] = useState<boolean>(false);
 
     const handleSelect = (value: Option["value"]) => {
@@ -33,13 +32,16 @@ export const DropDown = ({
         onChange(value);
     };
 
+    useEffect(() => {
+        setSelectedValue(defaultValue);
+    }, [defaultValue]);
     const handleToggleOpen = () => setOpen(!open);
 
     return (
         <ClickAwayListener onClickAway={() => setOpen(false)}>
             <div className="relative">
                 <div
-                    className="flex items-center justify-center w-6 h-6 bg-blue-500 rounded-md cursor-pointer hover:bg-blue-600 "
+                    className="flex items-center justify-center h-6 bg-blue-500 rounded-md cursor-pointer min-w-[24px] hover:bg-blue-600 "
                     onClick={handleToggleOpen}
                 >
                     {icon}
@@ -68,9 +70,13 @@ export const DropDown = ({
                                             onChange={() =>
                                                 handleSelect(option.value)
                                             }
-                                            checked={
-                                                selectedValue === option.value
-                                            }
+                                            checked={(() => {
+                                                console.log(selectedValue);
+                                                return (
+                                                    selectedValue ===
+                                                    option.value
+                                                );
+                                            })()}
                                         />
                                     )}
 

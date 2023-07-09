@@ -33,15 +33,17 @@ export enum FileFormat {
     //MIDI = "midi",
 }
 
+export type Instrument = {
+    name: InstrumentName;
+    player?: Player;
+    clientName: InstrumentOptions['name'];
+}
+
 export type Layer = {
     id: number;
     name: string;
     notes: NoteData[];
-    instrument: {
-        name: InstrumentName;
-        player: Player;
-        clientName: InstrumentOptions['name'];
-    };
+    instrument: Instrument;
 };
 
 export enum PlayingType {

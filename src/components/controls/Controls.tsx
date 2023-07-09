@@ -1,24 +1,11 @@
-import DraggableNumInput from "../draggable-num-input/DraggableNumInput";
-import {
-    TbPlayerPlayFilled,
-    TbPlayerPauseFilled,
-    TbPlayerStopFilled,
-} from "react-icons/tb";
-import { MdPiano } from "react-icons/md";
-import { BiMagnet } from "react-icons/bi";
-import { CgImport, CgSoftwareDownload } from "react-icons/cg";
-import { InstrumentOptions } from "./InstrumentOptions";
 import { useControls } from "./useControls";
-import { DownloadFileDialog } from "./DownloadFileDialog";
 import { useEffect, useRef, useState } from "react";
-import { HEADER_HEIGHT } from "../../utils/constants";
 import { PianoRoll } from "../piano-roll/PianoRoll";
 import {
     DarkModeContext,
     GridRefContext,
     PianoRollRefContext,
 } from "../../utils/context";
-import { FaLayerGroup } from "react-icons/fa";
 import { Header } from "./Header";
 import { Layers } from "../layers/Layers";
 import { PlayingType } from "../../utils/types";

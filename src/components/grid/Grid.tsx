@@ -21,6 +21,7 @@ import {
     hexToRgb,
 } from "../../utils/util-functions";
 import { ProgressSelector } from "../progress-selector/ProgressSelector";
+import { HorizontalScrollBar } from "../scroll-bars/HorizontalScrollBar";
 
 interface GridProps {
     handleMouseDownOnGrid: (e: React.MouseEvent<HTMLCanvasElement>) => void;
@@ -114,10 +115,17 @@ export const Grid = ({
 
         if (layers.length > 0) {
             for (let i = 0; i < layers.length; i++) {
+                if (layers[i].id === notes.id) continue;
                 for (let j = 0; j < layers[i].notes.length; j++) {
                     const note = layers[i].notes[j];
-                    placeNote(note, layers[i].id !== notes.id);
+                    placeNote(note, true);
                 }
+            }
+
+            // render selected layer last to make sure it's on top
+            for (let i = 0; i < notes.notes.length; i++) {
+                const note = notes.notes[i];
+                placeNote(note);
             }
         }
     }, [notes, context, gridWidth]);
@@ -134,7 +142,6 @@ export const Grid = ({
                 }}
             >
                 <div
-                    className=""
                     ref={gridImgRef}
                     style={{
                         height: PIANO_ROLL_HEIGHT + "px",
@@ -155,6 +162,7 @@ export const Grid = ({
                     ></canvas>
                 </div>
             </div>
+            <HorizontalScrollBar gridWidth={gridWidth} container={gridRef} />
         </>
     );
 };

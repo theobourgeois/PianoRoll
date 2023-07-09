@@ -313,8 +313,8 @@ export const usePianoRoll = (
             const note = notes.notes.find((note: NoteData) =>
                 noteOnGrid(note, row, col)
             );
-            const resizing = document.body.style.cursor === "ew-resize";
-            if (resizing) return handleResize(note);
+            const resizing = resizingNote(col, row);
+            if (resizing) return handleResize(resizing);
             if (note) return handleMoveNote(e, note);
 
             if (e.metaKey || e.ctrlKey)
@@ -357,7 +357,8 @@ export const usePianoRoll = (
         const note = notes.notes.find((note: NoteData) =>
             noteOnGrid(note, row, col)
         );
-        const resizing = note && col === note.column + note.units - 1;
+
+        const resizing = resizingNote(col, row);
         let cursor = "default";
         if (note) cursor = "all-scroll";
         if (resizing) cursor = "ew-resize";
@@ -372,8 +373,16 @@ export const usePianoRoll = (
 
     };
 
+    const resizingNote = (col: number, row: number) => {
+        const closestNote = notes.notes.find((note: NoteData) => {
+            return row === note.row && col === note.column + note.units;
+        })
+        return closestNote;
+    }
+
     return {
         handleMouseMoveOnGrid,
         handleMouseDownOnGrid,
     };
 };
+

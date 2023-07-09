@@ -6,7 +6,6 @@ import { LayersContext, NotesContext } from "../../utils/context";
 import { Layer } from "../../utils/types";
 import { CanvasLayerImage } from "./CanvasLayerImage";
 import { AiOutlineCheck } from "react-icons/ai";
-import { RxCross2 } from "react-icons/rx";
 
 interface LayerProps {
     layer: Layer;

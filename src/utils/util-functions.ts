@@ -1,4 +1,4 @@
-import { NoteData, Position, PositionRefs } from "./types";
+import { Instrument, NoteData, Position, PositionRefs } from "./types";
 import {
     BAR_LENGTH,
     HEADER_HEIGHT,
@@ -12,10 +12,9 @@ import {
     allNotes,
     idGen,
     audioContext,
-    instrumentPlayer,
     setInstrumentPlayer,
 } from "./globals";
-import Soundfont, { InstrumentName, Player } from "soundfont-player";
+import Soundfont, { InstrumentName } from "soundfont-player";
 
 export const createNewDefaultLayer = async () => {
     return {
@@ -132,7 +131,7 @@ export const getNoteCoordsFromMousePosition = (
     return { row, col };
 };
 
-export const playNote = (player: Player, note: string, timeMS = 100) => {
+export const playNote = (player: Instrument['player'], note: string, timeMS = 100) => {
     if (player)
         player.play(note, audioContext.currentTime, {
             duration: timeMS / 1000,
@@ -200,6 +199,7 @@ export const getNearestBar = (notes: NoteData[]) => {
     );
     if (farthestCol % BAR_LENGTH !== 0)
         farthestCol += BAR_LENGTH - (farthestCol % BAR_LENGTH);
+
     return farthestCol;
 };
 

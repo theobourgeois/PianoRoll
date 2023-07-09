@@ -7,7 +7,11 @@ import {
     TbPlayerPlayFilled,
     TbPlayerStopFilled,
 } from "react-icons/tb";
-import { HEADER_HEIGHT, INSTRUMENT_OPTIONS } from "../../utils/constants";
+import {
+    HEADER_HEIGHT,
+    INSTRUMENT_OPTIONS,
+    PIANO_WIDTH,
+} from "../../utils/constants";
 import {
     BPMContext,
     DarkModeContext,
@@ -23,6 +27,7 @@ import { CgDarkMode } from "react-icons/cg";
 import { DropDown } from "../dropdown/DropDown";
 import Soundfont, { InstrumentName } from "soundfont-player";
 import { audioContext } from "../../utils/globals";
+import ClickAwayListener from "react-click-away-listener";
 
 const toolStyle = "text-white";
 
@@ -95,6 +100,12 @@ export const Header = ({
                         height: HEADER_HEIGHT + "px",
                     }}
                 >
+                    <div
+                        style={{ width: PIANO_WIDTH + "px" }}
+                        className="flex justify-center text-xl font-bold text-slate-700 dark:text-slate-200"
+                    >
+                        Piano Roll
+                    </div>
                     <div
                         onClick={togglePlay}
                         className="flex items-center justify-center w-8 h-8 ml-2 bg-blue-500 rounded-md hover:bg-blue-600"
@@ -173,21 +184,7 @@ export const Header = ({
                         />
                     </div>
 
-                    <div className="ml-2" title="Instrument">
-                        <DropDown
-                            selectable
-                            icon={
-                                <MdPiano className={"w-6 h-6 " + toolStyle} />
-                            }
-                            onChange={handleChangeInstrument}
-                            options={INSTRUMENT_OPTIONS.map((option) => ({
-                                label: option.name,
-                                value: option.value,
-                            }))}
-                        />
-                    </div>
-
-                    <div className="ml-2" title="Page View">
+                    {/* <div className="ml-2" title="Page View">
                         <DropDown
                             icon={
                                 <MdPageview
@@ -202,7 +199,7 @@ export const Header = ({
                                 { label: "Falling Piano", value: 4 },
                             ]}
                         />
-                    </div>
+                    </div> */}
 
                     <div className="ml-2" title="File Options">
                         <DropDown
@@ -218,6 +215,41 @@ export const Header = ({
                                     value: option,
                                 })
                             )}
+                        />
+                        <ClickAwayListener
+                            onClickAway={() =>
+                                downloadFileDialogOpen &&
+                                handleToggleDownloadFileDialog()
+                            }
+                        >
+                            <div style={{ position: "relative" }}>
+                                <DownloadFileDialog
+                                    exportPianoRoll={exportPianoRoll}
+                                    open={downloadFileDialogOpen}
+                                />
+                            </div>
+                        </ClickAwayListener>
+                    </div>
+
+                    <div className="ml-2" title="Instrument">
+                        <DropDown
+                            selectable
+                            icon={
+                                <div className="flex px-1">
+                                    <MdPiano
+                                        className={"w-6 h-6 " + toolStyle}
+                                    />
+                                    <p className="text-white ">
+                                        {notes.instrument.clientName}
+                                    </p>
+                                </div>
+                            }
+                            defaultValue={notes.instrument.name}
+                            onChange={handleChangeInstrument}
+                            options={INSTRUMENT_OPTIONS.map((option) => ({
+                                label: option.name,
+                                value: option.value,
+                            }))}
                         />
                     </div>
                 </div>
@@ -240,10 +272,6 @@ export const Header = ({
                     </div>
                 </div>
             </div>
-            <DownloadFileDialog
-                exportPianoRoll={exportPianoRoll}
-                open={downloadFileDialogOpen}
-            />
             <input
                 className="absolute w-0 h-0 opacity-0"
                 ref={fileInputRef}

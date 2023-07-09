@@ -7,7 +7,6 @@ import {
     ProgressContext,
     PlayingContext,
     SnapValueContext,
-    InstrumentContext,
     LayersContext,
 } from "../../utils/context";
 import { allNotes, audioContext, idGen, instrumentPlayer, setInstrumentPlayer } from "../../utils/globals";
@@ -20,7 +19,7 @@ import {
     getNewID,
 } from "../../utils/util-functions";
 import toWav from 'audiobuffer-to-wav'
-import Soundfont from "soundfont-player";
+import Soundfont, { Player } from "soundfont-player";
 
 export const useControls = (playingType: PlayingType, setPlayingType: (type: PlayingType) => void) => {
     const { notes, setNotes } = useContext(NotesContext);
@@ -28,8 +27,8 @@ export const useControls = (playingType: PlayingType, setPlayingType: (type: Pla
     const { progress, setProgress } = useContext(ProgressContext);
     const { playing, setPlaying } = useContext(PlayingContext);
     const { snapValue, setSnapValue } = useContext(SnapValueContext);
-    const { instrument } = useContext(InstrumentContext);
-    const { layers } = useContext(LayersContext);
+    const { layers, setLayers } = useContext(LayersContext);
+
 
     const tempProgressRef = useRef<number>(0);
     const layersRef = useRef<Layer[]>(layers);
@@ -46,7 +45,7 @@ export const useControls = (playingType: PlayingType, setPlayingType: (type: Pla
 
     useEffect(() => {
         MidiParser.parse(fileInputRef.current, (obj: any) => {
-            setNotes({ ...notes, notes: midiToNoteData(obj) });
+            setNotes({ ...selectedLayerRef.current, notes: midiToNoteData(obj) });
         });
     }, []);
 
@@ -85,7 +84,7 @@ export const useControls = (playingType: PlayingType, setPlayingType: (type: Pla
             if (notesToPlay) {
                 for (const note of notesToPlay) {
                     const timeMS = note.units * unitTimeMs;
-                    playNote(selectedLayerRef.current.instrument.player, note.note, timeMS);
+                    playNote(selectedLayerRef.current.instrument?.player, note.note, timeMS);
                 }
             }
             setProgress(i);
@@ -103,7 +102,6 @@ export const useControls = (playingType: PlayingType, setPlayingType: (type: Pla
         const noTracks = layersRef.current.every(layer => layer.notes.length === 0);
         if (noTracks) return;
 
-        console.log(layersRef.current.map(layer => getNearestBar(layer.notes)))
         let farthestCol = Math.max(...layersRef.current.map(layer => getNearestBar(layer.notes)));
         if (farthestCol === -Infinity) return; // If there are no notes
         let unitTimeMs = (60 / (BPMRef.current * 8)) * 1000;
@@ -115,7 +113,7 @@ export const useControls = (playingType: PlayingType, setPlayingType: (type: Pla
                 const notesToPlay = layer.notes.filter(note => note.column === i);
                 for (const note of notesToPlay) {
                     const timeMS = note.units * unitTimeMs;
-                    playNote(layer.instrument.player, note.note, timeMS);
+                    playNote(layer.instrument?.player, note.note, timeMS);
                 }
             }
             setProgress(i);
@@ -145,7 +143,7 @@ export const useControls = (playingType: PlayingType, setPlayingType: (type: Pla
 
     const handleSelectAll = () => {
         setNotes((prevNotes: Layer) => ({
-            ...notes,
+            ...selectedLayerRef.current,
             notes: prevNotes.notes.map((note) => ({
                 ...note,
                 selected: true,
@@ -155,7 +153,7 @@ export const useControls = (playingType: PlayingType, setPlayingType: (type: Pla
 
     const handleDeselectAll = () => {
         setNotes((prevNotes: Layer) => ({
-            ...notes,
+            ...selectedLayerRef.current,
             notes: prevNotes.notes.map((note) => ({
                 ...note,
                 selected: false,
@@ -238,41 +236,53 @@ export const useControls = (playingType: PlayingType, setPlayingType: (type: Pla
     };
 
     const handleDuplicateNotes = () => {
-        const newNotes = [...selectedLayerRef.current.notes];
-        const noSelectedNote = selectedLayerRef.current.notes.every(
-            (note: NoteData) => !note.selected
-        );
+        const newNotes = [...selectedLayerRef.current.notes].map(note => ({ ...note, selected: false }));
         const selectedNotes = selectedLayerRef.current.notes.filter((note) => note.selected);
+        const noSelectedNote = selectedNotes.length === 0;
 
-        for (const note of selectedLayerRef.current.notes) {
-            if (!note.selected && !noSelectedNote) continue;
+        if (noSelectedNote) {
+            const offset = getNearestBar(selectedLayerRef.current.notes);
+            for (const note of selectedLayerRef.current.notes) {
+                const newNote = {
+                    ...note,
+                    selected: true,
+                    column: note.column + offset,
+                    id: getNewID(),
+                };
+                newNotes.push(newNote);
+            }
+        }
+        else {
+            const offset = getNearestBar(selectedNotes);
+            const smallestCol = Math.min(...selectedNotes.map(note => note.column));
+            for (const note of selectedNotes) {
 
-            const newNote = {
-                ...note,
-                column:
-                    note.column +
-                    getNearestBar(
-                        noSelectedNote ? selectedLayerRef.current.notes : selectedNotes
-                    ),
-                id: getNewID(),
-            };
-            newNotes.push(newNote);
+                const newNote = {
+                    ...note,
+                    selected: true,
+                    column: note.column - smallestCol + offset,
+                    id: getNewID(),
+                };
+                newNotes.push(newNote);
+            }
+
         }
         setNotes((prevSelectedLayer: Layer) => ({ ...prevSelectedLayer, notes: newNotes }));
-    };
+    }
 
     const handleDeleteNotes = () => {
         const noSelectedNote = selectedLayerRef.current.notes.every(
             (note: NoteData) => !note.selected
         );
-        if (noSelectedNote) return setNotes({ ...notes, notes: [] });
+        if (noSelectedNote) return setNotes({ ...selectedLayerRef.current, notes: [] });
+
         const newNotes = [...selectedLayerRef.current.notes];
         for (const note of selectedLayerRef.current.notes) {
             if (note.selected) {
                 newNotes.splice(newNotes.indexOf(note), 1);
             }
         }
-        setNotes({ ...notes, notes: newNotes });
+        setNotes({ ...selectedLayerRef.current, notes: newNotes });
     };
 
     useEffect(() => {
@@ -326,22 +336,9 @@ export const useControls = (playingType: PlayingType, setPlayingType: (type: Pla
                 case "x":
                     break;
             }
-
-            //e.preventDefault();
         };
-
         document.addEventListener("keydown", handleKeyDown);
-        const storedNotes = localStorage.getItem("notes");
-        if (storedNotes) setNotes({ ...notes, notes: JSON.parse(storedNotes) });
-
-        const saveNotes = () => {
-            localStorage.setItem("notes", JSON.stringify(selectedLayerRef.current.notes));
-        };
-
-        const intervalId = setInterval(saveNotes, DEFAULT_SAVE_TIME);
-
         return () => {
-            clearInterval(intervalId);
             document.removeEventListener("keydown", handleKeyDown);
         };
     }, []);
@@ -361,7 +358,7 @@ export const useControls = (playingType: PlayingType, setPlayingType: (type: Pla
         BPMRef.current = value;
     };
 
-    const playPianoRollOffline = async (context: OfflineAudioContext) => {
+    const playTrackOffline = async (instrument: Player) => {
         if (selectedLayerRef.current.notes.length === 0) return;
         let farthestCol = getNearestBar(selectedLayerRef.current.notes);
         let unitTimeSec = 60 / (BPMRef.current * 8);  // Switched to seconds
@@ -373,24 +370,67 @@ export const useControls = (playingType: PlayingType, setPlayingType: (type: Pla
                 (note) => note.column === i
             );
             for (const note of notesToPlay) {
-                playNoteOffline(note.note, currentTime, note.units * unitTimeSec);
+                playNoteOffline(note.note, currentTime, note.units * unitTimeSec, instrument);
             }
             currentTime += unitTimeSec;
+
         }
-    };
 
+    }
 
+    const playSongOffline = async (instruments: OfflineInstrument[]) => {
+        if (selectedLayerRef.current.notes.length === 0) return;
+        let unitTimeSec = 60 / (BPMRef.current * 8);
+        let currentTime = 0;
+        let farthestCol = Math.max(...layersRef.current.map(layer => getNearestBar(layer.notes)));
+        if (farthestCol === -Infinity) return;
+        for (let i = 0; i < farthestCol; i++) {
+            unitTimeSec = 60 / (BPMRef.current * 8);
+            let maxDuration = 0;
+            for (const layer of layersRef.current) {
+                const notesToPlay = layer.notes.filter(note => note.column === i);
+                const instrument = instruments.find(instrument => instrument.id === layer.id)?.instrument;
+                for (const note of notesToPlay) {
+                    const noteDuration = note.units * unitTimeSec;
+                    playNoteOffline(note.note, currentTime, noteDuration, instrument as Player);
+                    maxDuration = Math.max(maxDuration, noteDuration);
+                }
+            }
+            currentTime += maxDuration;
+        }
+    }
 
     const exportPianoRoll = async (format: FileFormat, filename: string) => {
-        const lengthOfSong = getNearestBar(selectedLayerRef.current.notes) * (60 / (BPMRef.current * 8));
+        let lengthOfSong = getNearestBar(selectedLayerRef.current.notes) * (60 / (BPMRef.current * 8));
+        if (playingTypeRef.current === PlayingType.SONG)
+            lengthOfSong = Math.max(...layersRef.current.map(layer => getNearestBar(layer.notes))) * (60 / (BPMRef.current * 8));
+
         const offlineContext = new OfflineAudioContext({
             numberOfChannels: 2,
             length: 44100 * lengthOfSong,
             sampleRate: 44100,
         });
-        // @ts-ignore
-        setInstrumentPlayer(await Soundfont.instrument(offlineContext, instrument));
-        await playPianoRollOffline(offlineContext);
+
+        switch (playingTypeRef.current) {
+            case PlayingType.TRACK:
+                // @ts-ignore
+                const instrument = await Soundfont.instrument(offlineContext, selectedLayerRef.current.instrument.name);
+                playTrackOffline(instrument);
+                break;
+            case PlayingType.SONG:
+                const instrumentPromises = layersRef.current.map(async layer => {
+                    // @ts-ignore
+                    const instrument = await Soundfont.instrument(offlineContext, layer.instrument.name);
+                    return ({
+                        id: layer.id,
+                        instrument
+                    });
+                });
+                const instruments = await Promise.all(instrumentPromises);
+                playSongOffline(instruments);
+                break;
+        }
+
 
         offlineContext.startRendering().then(async (buffer) => {
             switch (format) {
@@ -409,9 +449,7 @@ export const useControls = (playingType: PlayingType, setPlayingType: (type: Pla
                 }
             }
 
-            setInstrumentPlayer(await Soundfont.instrument(audioContext, instrument));
         });
-
     }
 
     return {
@@ -424,7 +462,7 @@ export const useControls = (playingType: PlayingType, setPlayingType: (type: Pla
     };
 };
 
-const playNoteOffline = (note: string, time: number, ms: number) => {
+const playNoteOffline = (note: string, time: number, ms: number, instrumentPlayer: Player) => {
     if (instrumentPlayer) {
         instrumentPlayer.play(note, time, {
             duration: ms,
@@ -432,3 +470,8 @@ const playNoteOffline = (note: string, time: number, ms: number) => {
         });
     }
 };
+
+interface OfflineInstrument {
+    id: number;
+    instrument: Player;
+}
